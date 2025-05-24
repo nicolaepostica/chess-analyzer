@@ -1,3 +1,6 @@
+import { Chess } from 'chess.js'
+import type { GameRecord, RecordedMove } from './record'
+
 // game/ may not import engine/, so these mirror engine's Score and EvalUpdate
 // structurally. An engine value can be passed here as is.
 export type EngineScore = { type: 'cp' | 'mate'; value: number }
@@ -66,4 +69,191 @@ export function gameAccuracy(
   }
 
   return { white: aggregate(perSide.w), black: aggregate(perSide.b) }
+}
+
+export type MoveLabel =
+  | 'book'
+  | 'brilliant'
+  | 'great'
+  | 'best'
+  | 'excellent'
+  | 'good'
+  | 'miss'
+  | 'inaccuracy'
+  | 'mistake'
+  | 'blunder'
+
+export type ReviewedMove = RecordedMove & {
+  /** 0-based index into record.moves. */
+  ply: number
+  label: MoveLabel
+  /** Win% points the mover gave up against the engine's best, ≥ 0. */
+  loss: number
+  bestUci: string | null
+  bestSan: string | null
+  /** The engine's best in fenBefore, White's perspective. */
+  bestScoreWhite: EngineScore | null
+  /** The evaluation of fenAfter, White's perspective; null when the game is over there. */
+  playedScoreWhite: EngineScore | null
+}
+
+export type ReviewResult = {
+  /** Only plies whose two positions are evaluated, in order. */
+  moves: ReviewedMove[]
+  /** White's win% in each evaluated position, from the start. */
+  whiteWins: number[]
+  /** Null until every position is evaluated. */
+  accuracy: { white: number; black: number } | null
+}
+
+export const THRESHOLDS = {
+  excellent: 2,
+  good: 5,
+  inaccuracy: 10,
+  mistake: 20,
+  greatGap: 10,
+  brilliantMaxWinBefore: 90,
+  sacrificeMin: 2,
+  sacrificePlies: 4,
+  missMinWinBefore: 70,
+} as const
+
+const PIECE_VALUES: Record<string, number> = { p: 1, n: 3, b: 3, r: 5, q: 9, k: 0 }
+
+/** Material of `side` minus material of the opponent, from the FEN placement. */
+function materialBalance(fen: string, side: 'w' | 'b'): number {
+  let balance = 0
+  for (const char of fen.split(' ')[0]) {
+    const value = PIECE_VALUES[char.toLowerCase()]
+    if (value === undefined) continue
+    const owner = char === char.toUpperCase() ? 'w' : 'b'
+    balance += owner === side ? value : -value
+  }
+  return balance
+}
+
+/**
+ * A sacrifice gives up material that the engine's reply line does not hand
+ * back quickly: the mover's balance dips at least `sacrificeMin` below where
+ * it stood before the move, within `sacrificePlies` of the expected reply.
+ */
+function isSacrifice(move: RecordedMove, replyPv: string[]): boolean {
+  const before = materialBalance(move.fenBefore, move.color)
+  const game = new Chess(move.fenAfter)
+  let lowest = materialBalance(move.fenAfter, move.color)
+  for (const uci of replyPv.slice(0, THRESHOLDS.sacrificePlies)) {
+    try {
+      game.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] })
+    } catch {
+      break
+    }
+    lowest = Math.min(lowest, materialBalance(game.fen(), move.color))
+  }
+  return before - lowest >= THRESHOLDS.sacrificeMin
+}
+
+const sideToMove = (fen: string): 'w' | 'b' => (fen.split(' ')[1] === 'b' ? 'b' : 'w')
+
+/** Side-to-move win% of a position; a finished game is scored from its result. */
+function positionWin(fen: string, evaluation: PositionEval): number {
+  const best = evaluation.lines[0]
+  if (best) return winPercent(best.score)
+  const game = new Chess(fen)
+  if (game.isCheckmate()) return 0
+  return 50
+}
+
+const toWhite = (score: EngineScore, fen: string): EngineScore =>
+  sideToMove(fen) === 'b' ? { type: score.type, value: -score.value } : score
+
+function uciToSan(fen: string, uci: string): string | null {
+  try {
+    return new Chess(fen).move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] }).san
+  } catch {
+    return null
+  }
+}
+
+function lossLabel(loss: number): MoveLabel {
+  if (loss < THRESHOLDS.excellent) return 'excellent'
+  if (loss < THRESHOLDS.good) return 'good'
+  if (loss < THRESHOLDS.inaccuracy) return 'inaccuracy'
+  if (loss < THRESHOLDS.mistake) return 'mistake'
+  return 'blunder'
+}
+
+/**
+ * Labels every move whose before and after positions are evaluated.
+ * `evals[i]` belongs to `record.positions[i]` and may be shorter while a review
+ * is still running.
+ */
+export function reviewGame(
+  record: GameRecord,
+  evals: PositionEval[],
+  isBook: (fen: string) => boolean,
+): ReviewResult {
+  const evaluated = Math.min(evals.length, record.positions.length)
+  const whiteWins = record.positions.slice(0, evaluated).map((fen, i) => {
+    const win = positionWin(fen, evals[i])
+    return sideToMove(fen) === 'w' ? win : 100 - win
+  })
+
+  const moves: ReviewedMove[] = []
+  const bookFlags: boolean[] = []
+  let inBook = true
+
+  for (let ply = 0; ply + 1 < evaluated; ply += 1) {
+    const move = record.moves[ply]
+    const before = evals[ply]
+    const after = evals[ply + 1]
+    const best = before.lines[0] ?? null
+
+    const winBefore = positionWin(move.fenBefore, before)
+    const winAfter = 100 - positionWin(move.fenAfter, after)
+    const loss = Math.max(0, winBefore - winAfter)
+    const isBest = best !== null && best.pv[0] === move.uci
+
+    inBook = inBook && isBook(move.fenAfter)
+    const second = before.lines[1]
+    const previous = moves[ply - 1]?.label
+
+    let label: MoveLabel
+    if (inBook) label = 'book'
+    else if (
+      loss < THRESHOLDS.excellent &&
+      winBefore < THRESHOLDS.brilliantMaxWinBefore &&
+      isSacrifice(move, after.lines[0]?.pv ?? [])
+    )
+      label = 'brilliant'
+    else if (isBest && second && winPercent(best.score) - winPercent(second.score) >= THRESHOLDS.greatGap)
+      label = 'great'
+    else if (isBest) label = 'best'
+    else if (loss < THRESHOLDS.good) label = lossLabel(loss)
+    else if (
+      (previous === 'mistake' || previous === 'blunder') &&
+      winBefore >= THRESHOLDS.missMinWinBefore &&
+      loss >= THRESHOLDS.inaccuracy
+    )
+      label = 'miss'
+    else label = lossLabel(loss)
+
+    bookFlags.push(inBook)
+    moves.push({
+      ...move,
+      ply,
+      label,
+      loss,
+      bestUci: best?.pv[0] ?? null,
+      bestSan: best ? uciToSan(move.fenBefore, best.pv[0]) : null,
+      bestScoreWhite: best ? toWhite(best.score, move.fenBefore) : null,
+      playedScoreWhite: after.lines[0] ? toWhite(after.lines[0].score, move.fenAfter) : null,
+    })
+  }
+
+  const complete = evaluated === record.positions.length && evaluated > 0
+  return {
+    moves,
+    whiteWins,
+    accuracy: complete ? gameAccuracy(whiteWins, bookFlags, sideToMove(record.startFen)) : null,
+  }
 }
