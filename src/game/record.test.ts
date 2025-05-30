@@ -51,3 +51,10 @@ it('keeps headers', () => {
   const game = record('[White "Alice"]\n[Black "Bob"]\n[Date "2025.05.21"]\n\n1. e4 *')
   expect(game.headers).toMatchObject({ White: 'Alice', Black: 'Bob', Date: '2025.05.21' })
 })
+
+it('parses a real chess.com PGN with clock comments', async () => {
+  const { default: archive } = await import('../sources/fixtures/archive-2025-04.json')
+  const game = record(archive.games[0].pgn)
+  expect(game.headers.White).toBe('Hikaru')
+  expect(game.moves.length).toBeGreaterThan(20)
+})
