@@ -51,13 +51,18 @@ The canonical fixture across the whole codebase is the mate-in-one position
 
 ## Architecture
 
-Three modules with hard boundaries, bridged by exactly one hook.
+Three modules with hard boundaries, bridged by two hooks.
 
 - **`src/engine/`** — the only place that knows UCI and WASM. Never imports React.
 - **`src/game/`** — a `chess.js` wrapper: legality, FEN, PGN, preview, editor
   validation. Imports neither `engine/` nor React. Pure functions over state.
 - **`src/ui/`** — React components that receive data as props and compute nothing.
-- **`src/hooks/useAnalysis.ts`** — the single point where the engine meets React.
+- **`src/hooks/useAnalysis.ts`** and **`src/hooks/useGameReview.ts`** — the only
+  points where the engine meets React. `useAnalysis` follows one live position;
+  `useGameReview` walks every position of a game once through
+  `engine/batch.ts` and re-classifies the moves (`game/review.ts`) after each.
+- **`src/sources/`** — loads games from outside (chess.com public API). No React,
+  no engine.
 
 If a change to presentation forces you to touch `engine/`, `game/` or `hooks/`,
 an abstraction has leaked. Treat that as a design bug, not a chore.
