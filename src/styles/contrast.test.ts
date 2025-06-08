@@ -16,7 +16,21 @@ const bg = parseColor(token('bg')).rgb
 const surfaceRaw = parseColor(token('surface'))
 const surface = compositeOver(surfaceRaw.rgb, surfaceRaw.alpha, bg)
 
-const TEXT_TOKENS = ['fg', 'fg-secondary', 'fg-muted', 'accent', 'accent-alt'] as const
+const TEXT_TOKENS = [
+  'fg',
+  'fg-secondary',
+  'fg-muted',
+  'accent',
+  'accent-alt',
+  'label-brilliant',
+  'label-great',
+  'label-best',
+  'label-book',
+  'label-inaccuracy',
+  'label-mistake',
+  'label-miss',
+  'label-blunder',
+] as const
 
 describe('colour maths', () => {
   it('parses hex', () => {
