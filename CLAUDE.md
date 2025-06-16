@@ -6,7 +6,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
     npm run dev      # copies engine binaries, then starts Vite on :5173
     npm run build    # copy-stockfish && tsc -b && vite build
-    npm test         # vitest run (all 88 tests)
+    npm test         # vitest run (the whole suite)
     npx tsc -b       # typecheck only
 
 Run one test file, or one test by name:
@@ -44,6 +44,10 @@ Two invariants the suite relies on:
   / `pgn-input` / `depth` / `multipv` field ids, and the `line-list`, `pv-move`,
   `position-editor`, `palette`, `editor-controls` classes. Restyling must
   preserve them.
+- **Game review handles**: `data-testid` `eval-graph`, `graph-marker`,
+  `review-move` (with `aria-current` on the current move), `review-progress`,
+  `accuracy-white`, `accuracy-black`, `count-<label>-<white|black>`; buttons
+  `Review PGN`, `Retry`, `Analyze position`; the `pgn-input` textarea.
 
 The canonical fixture across the whole codebase is the mate-in-one position
 `6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1`, best move `a1a8`, score
