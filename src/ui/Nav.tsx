@@ -5,7 +5,7 @@ const LINKS = [
   { to: '/best-move', label: 'Best move' },
   { to: '/play', label: 'Play vs computer' },
   { to: '/freestyle', label: 'Chess960' },
-  { to: '/import', label: 'Import game' },
+  { to: '/import', label: 'Game review' },
 ]
 
 const BASE = 'whitespace-nowrap rounded-full border px-3.5 py-2 text-sm transition-colors'
