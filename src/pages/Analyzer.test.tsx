@@ -32,7 +32,10 @@ const AFTER_E4 = 'rnbqkbnr/pppppppp/8/8/4P3/8/PPPP1PPP/RNBQKBNR b KQkq - 0 1'
 const board = () => screen.getByTestId('board')
 const backToGame = () => screen.queryByRole('button', { name: 'Back to game' })
 
-beforeEach(() => localStorage.clear())
+beforeEach(() => {
+  localStorage.clear()
+  window.history.pushState({}, '', '/')
+})
 
 it('shows the game position before any line is selected', () => {
   render(<Analyzer />)
@@ -78,4 +81,16 @@ it('returns to the game position', async () => {
 
   expect(board()).toHaveAttribute('data-fen', START)
   expect(backToGame()).not.toBeInTheDocument()
+})
+
+it('opens the position passed as ?fen=', () => {
+  window.history.pushState({}, '', `/?fen=${encodeURIComponent(AFTER_E4)}`)
+  render(<Analyzer />)
+  expect(board()).toHaveAttribute('data-fen', AFTER_E4)
+})
+
+it('ignores an invalid ?fen=', () => {
+  window.history.pushState({}, '', '/?fen=garbage')
+  render(<Analyzer />)
+  expect(board()).toHaveAttribute('data-fen', START)
 })
