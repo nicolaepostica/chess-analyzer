@@ -2,7 +2,7 @@ import { useCallback, useMemo, useState } from 'react'
 import type { Chess } from 'chess.js'
 import type { EvalUpdate } from '../engine/uci'
 import type { Square } from '../game/game'
-import { createGame, getState, legalDests, tryMove } from '../game/game'
+import { createGame, getState, isValidFen, legalDests, tryMove } from '../game/game'
 import { previewFen } from '../game/preview'
 import { useAnalysis } from '../hooks/useAnalysis'
 import { useSettings } from '../hooks/useSettings'
@@ -21,8 +21,14 @@ import { SECONDARY_BUTTON } from '../ui/buttonStyles'
 // re-run api.set() on every render and cut the move animation short.
 const NO_DESTS: Map<Square, Square[]> = new Map()
 
+/** The game review opens positions here as ?fen=. Not useSearchParams: tests render without a router. */
+function initialFen(): string | undefined {
+  const fen = new URLSearchParams(window.location.search).get('fen')
+  return fen && isValidFen(fen) ? fen : undefined
+}
+
 export function Analyzer() {
-  const [game, setGame] = useState(() => createGame())
+  const [game, setGame] = useState(() => createGame(initialFen()))
   const [state, setState] = useState(() => getState(game))
   const [preview, setPreview] = useState<string | null>(null)
   const [editing, setEditing] = useState(false)
