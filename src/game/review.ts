@@ -133,23 +133,31 @@ function materialBalance(fen: string, side: 'w' | 'b'): number {
 }
 
 /**
- * A sacrifice gives up material that the engine's reply line does not hand
- * back quickly: the mover's balance dips at least `sacrificeMin` below where
- * it stood before the move, within `sacrificePlies` of the expected reply.
+ * A sacrifice gives up material that the mover does not win straight back:
+ * along the engine's expected reply, the mover's balance stays at least
+ * `sacrificeMin` below where it stood before the move. Only positions after the
+ * mover's own answers count (plies 2, 4, …), so a trade the opponent starts and
+ * the mover completes is not mistaken for a sacrifice; if the line is shorter,
+ * the position after the opponent's reply counts.
  */
 function isSacrifice(move: RecordedMove, replyPv: string[]): boolean {
   const before = materialBalance(move.fenBefore, move.color)
   const game = new Chess(move.fenAfter)
-  let lowest = materialBalance(move.fenAfter, move.color)
-  for (const uci of replyPv.slice(0, THRESHOLDS.sacrificePlies)) {
+  const checkpoints: number[] = []
+  let lastReply: number | null = null
+  for (const [i, uci] of replyPv.slice(0, THRESHOLDS.sacrificePlies).entries()) {
     try {
       game.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] })
     } catch {
       break
     }
-    lowest = Math.min(lowest, materialBalance(game.fen(), move.color))
+    const balance = materialBalance(game.fen(), move.color)
+    if (i % 2 === 1) checkpoints.push(balance)
+    else lastReply = balance
   }
-  return before - lowest >= THRESHOLDS.sacrificeMin
+  if (checkpoints.length === 0 && lastReply !== null) checkpoints.push(lastReply)
+  if (checkpoints.length === 0) return false
+  return before - Math.max(...checkpoints) >= THRESHOLDS.sacrificeMin
 }
 
 const sideToMove = (fen: string): 'w' | 'b' => (fen.split(' ')[1] === 'b' ? 'b' : 'w')
