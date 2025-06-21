@@ -78,6 +78,13 @@ describe('brilliant', () => {
     expect(reviewGame(sacrifice, evals, noBook).moves[0].label).toBe('best')
   })
 
+  it('does not call a quiet move Brilliant when the opponent merely trades', () => {
+    // After a3 the engine expects Nxd4 Qxd4: material dips, then comes straight back.
+    const quiet = fromFen('4k3/8/4n3/8/3N4/8/P7/3QK3 w - - 0 1', '1. a3')
+    const evals = [at(cp(50, ['a2a3'])), at(cp(-50, ['e6d4', 'd1d4']))]
+    expect(reviewGame(quiet, evals, noBook).moves[0].label).toBe('best')
+  })
+
   it('does not call an even trade Brilliant', () => {
     const trade = fromFen('6k1/8/2p5/3n4/8/4N3/8/6K1 w - - 0 1', '1. Nxd5')
     const evals = [at(cp(50, ['e3d5'])), at(cp(-50, ['c6d5', 'g1f2']))]
