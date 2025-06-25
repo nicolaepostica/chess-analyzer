@@ -8,7 +8,7 @@ import { Shell } from './ui/Shell'
 
 export function App() {
   return (
-    <BrowserRouter>
+    <BrowserRouter basename={import.meta.env.BASE_URL.replace(/\/$/, '')}>
       <Shell>
         <Routes>
           <Route path="/" element={<Analyzer />} />
