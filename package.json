@@ -30,6 +30,7 @@
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^4.3.0",
+    "coi-serviceworker": "0.1.7",
     "jsdom": "^29.1.1",
     "stockfish": "18.0.8",
     "tailwindcss": "^4.3.2",
