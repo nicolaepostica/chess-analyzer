@@ -20,3 +20,10 @@ for (const file of FILES) {
   copyFileSync(src, join(outDir, file))
 }
 console.log(`Copied ${FILES.length} engine files to ${outDir}`)
+
+// GitHub Pages cannot send COOP/COEP headers. This MIT-licensed shim re-serves
+// the page through a service worker that adds them, so the multi-threaded
+// engine works there too. It is a no-op where the headers already exist.
+const coi = join(dirname(require.resolve('coi-serviceworker/package.json')), 'coi-serviceworker.min.js')
+copyFileSync(coi, join(process.cwd(), 'public', 'coi-serviceworker.min.js'))
+console.log('Copied coi-serviceworker.min.js to public/')
