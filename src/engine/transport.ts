@@ -4,8 +4,9 @@ export interface EngineTransport {
   terminate(): void
 }
 
-const MULTI_THREADED = '/stockfish/stockfish-18-lite.js'
-const SINGLE_THREADED = '/stockfish/stockfish-18-lite-single.js'
+// Relative to the app base so the build also works under /chess-analyzer/ on Pages.
+const MULTI_THREADED = `${import.meta.env.BASE_URL}stockfish/stockfish-18-lite.js`
+const SINGLE_THREADED = `${import.meta.env.BASE_URL}stockfish/stockfish-18-lite-single.js`
 
 /**
  * The multi-threaded build requires SharedArrayBuffer, which is only available
