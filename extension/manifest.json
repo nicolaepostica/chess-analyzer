@@ -1,0 +1,13 @@
+{
+  "manifest_version": 3,
+  "name": "Chess Analyzer — Analyze free",
+  "version": "0.1.0",
+  "description": "Adds an \"Analyze free\" button to finished chess.com games that opens a free Stockfish Game Review.",
+  "content_scripts": [
+    {
+      "matches": ["https://www.chess.com/*"],
+      "js": ["tcn.js", "content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}
