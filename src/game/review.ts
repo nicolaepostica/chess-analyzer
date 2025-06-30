@@ -132,32 +132,52 @@ function materialBalance(fen: string, side: 'w' | 'b'): number {
   return balance
 }
 
-/**
- * A sacrifice gives up material that the mover does not win straight back:
- * along the engine's expected reply, the mover's balance stays at least
- * `sacrificeMin` below where it stood before the move. Only positions after the
- * mover's own answers count (plies 2, 4, …), so a trade the opponent starts and
- * the mover completes is not mistaken for a sacrifice; if the line is shorter,
- * the position after the opponent's reply counts.
- */
-function isSacrifice(move: RecordedMove, replyPv: string[]): boolean {
-  const before = materialBalance(move.fenBefore, move.color)
-  const game = new Chess(move.fenAfter)
-  const checkpoints: number[] = []
-  let lastReply: number | null = null
-  for (const [i, uci] of replyPv.slice(0, THRESHOLDS.sacrificePlies).entries()) {
+/** Plays UCI moves from `fen`, stopping at the first illegal one; returns the FEN after each. */
+function walk(fen: string, pv: string[]): string[] {
+  const game = new Chess(fen)
+  const fens: string[] = []
+  for (const uci of pv) {
     try {
       game.move({ from: uci.slice(0, 2), to: uci.slice(2, 4), promotion: uci[4] })
     } catch {
       break
     }
-    const balance = materialBalance(game.fen(), move.color)
-    if (i % 2 === 1) checkpoints.push(balance)
-    else lastReply = balance
+    fens.push(game.fen())
   }
-  if (checkpoints.length === 0 && lastReply !== null) checkpoints.push(lastReply)
-  if (checkpoints.length === 0) return false
-  return before - Math.max(...checkpoints) >= THRESHOLDS.sacrificeMin
+  return fens
+}
+
+/**
+ * The material the mover keeps along a line that starts with the opponent to
+ * move: the best of the positions after the mover's own answers (plies 2, 4, …),
+ * so a trade the opponent starts and the mover completes nets out. If the line
+ * is shorter, the position after the opponent's reply counts. Null when the
+ * line is empty.
+ */
+function keptMaterial(fen: string, pv: string[], side: 'w' | 'b'): number | null {
+  const fens = walk(fen, pv.slice(0, THRESHOLDS.sacrificePlies))
+  const answers = fens.filter((_, i) => i % 2 === 1)
+  const counted = answers.length > 0 ? answers : fens.slice(0, 1)
+  if (counted.length === 0) return null
+  return Math.max(...counted.map((position) => materialBalance(position, side)))
+}
+
+/**
+ * A sacrifice gives up material by choice: along the engine's expected reply the
+ * mover stays at least `sacrificeMin` down, while the engine's alternative move
+ * would have kept that material. Without an alternative (a forced move, or a
+ * fork where every move loses the same piece) nothing was sacrificed.
+ */
+function isSacrifice(move: RecordedMove, replyPv: string[], alternative: EngineLine | undefined): boolean {
+  if (!alternative) return false
+  const before = materialBalance(move.fenBefore, move.color)
+  const played = keptMaterial(move.fenAfter, replyPv, move.color)
+  if (played === null || before - played < THRESHOLDS.sacrificeMin) return false
+
+  const [afterAlternative] = walk(move.fenBefore, alternative.pv.slice(0, 1))
+  if (!afterAlternative) return false
+  const kept = keptMaterial(afterAlternative, alternative.pv.slice(1), move.color) ?? materialBalance(afterAlternative, move.color)
+  return kept - played >= THRESHOLDS.sacrificeMin
 }
 
 const sideToMove = (fen: string): 'w' | 'b' => (fen.split(' ')[1] === 'b' ? 'b' : 'w')
@@ -230,7 +250,11 @@ export function reviewGame(
     else if (
       loss < THRESHOLDS.excellent &&
       winBefore < THRESHOLDS.brilliantMaxWinBefore &&
-      isSacrifice(move, after.lines[0]?.pv ?? [])
+      isSacrifice(
+        move,
+        after.lines[0]?.pv ?? [],
+        before.lines.find((line) => line.pv[0] !== move.uci),
+      )
     )
       label = 'brilliant'
     else if (isBest && second && winPercent(best.score) - winPercent(second.score) >= THRESHOLDS.greatGap)
