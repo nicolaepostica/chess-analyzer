@@ -67,14 +67,18 @@ describe('brilliant', () => {
   // Rook takes a pawn-defended knight: an exchange sacrifice.
   const sacrifice = fromFen('6k1/8/2p5/3n4/8/8/8/3R2K1 w - - 0 1', '1. Rxd5')
 
+  // A quiet alternative that keeps the material: giving it up was a choice.
+  const quietAlternative = cp(30, ['g1f2', 'g8f7', 'f2e3'])
+
   it('labels a sound sacrifice in a non-winning position Brilliant', () => {
-    const evals = [at(cp(50, ['d1d5'])), at(cp(-50, ['c6d5', 'g1f2']))]
+    const evals = [at(cp(50, ['d1d5']), quietAlternative), at(cp(-50, ['c6d5', 'g1f2']))]
     expect(reviewGame(sacrifice, evals, noBook).moves[0].label).toBe('brilliant')
   })
 
   it('does not call a sacrifice Brilliant when already winning', () => {
     const winning = cpForWin(95)
-    const evals = [at(cp(winning, ['d1d5'])), at(cp(-winning, ['c6d5', 'g1f2']))]
+    const alternative = cp(winning - 20, quietAlternative.pv)
+    const evals = [at(cp(winning, ['d1d5']), alternative), at(cp(-winning, ['c6d5', 'g1f2']))]
     expect(reviewGame(sacrifice, evals, noBook).moves[0].label).toBe('best')
   })
 
@@ -83,6 +87,22 @@ describe('brilliant', () => {
     const quiet = fromFen('4k3/8/4n3/8/3N4/8/P7/3QK3 w - - 0 1', '1. a3')
     const evals = [at(cp(50, ['a2a3'])), at(cp(-50, ['e6d4', 'd1d4']))]
     expect(reviewGame(quiet, evals, noBook).moves[0].label).toBe('best')
+  })
+
+  it('does not call a forced loss of material Brilliant', () => {
+    // Nc7+ forks king and rook: every king move drops the rook.
+    const fork = fromFen('r3k3/2N5/8/8/8/8/P7/4K3 b - - 0 1', '1... Ke7 2. Nxa8')
+    const evals = [
+      at(cp(-300, ['e8e7', 'c7a8']), cp(-320, ['e8d8', 'c7a8'])),
+      at(cp(300, ['c7a8', 'e7d6'])),
+      at(cp(300, ['a2a4'])),
+    ]
+    expect(reviewGame(fork, evals, noBook).moves[0].label).not.toBe('brilliant')
+  })
+
+  it('does not call a sacrifice Brilliant when it is the only legal option the engine sees', () => {
+    const evals = [at(cp(50, ['d1d5'])), at(cp(-50, ['c6d5', 'g1f2']))]
+    expect(reviewGame(sacrifice, evals, noBook).moves[0].label).not.toBe('brilliant')
   })
 
   it('does not call an even trade Brilliant', () => {
