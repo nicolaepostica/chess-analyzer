@@ -170,3 +170,26 @@ it('ignores arrow keys while typing in the PGN box', async () => {
   })
   expect(lastRecord()).toBeNull()
 })
+
+it('shows the result on the eval bar after mate', async () => {
+  const { reviewedMove } = await import('../ui/review.fixtures')
+  const moves = Array.from({ length: 7 }, (_, ply) =>
+    reviewedMove({ ply, label: 'best', playedScoreWhite: ply === 6 ? null : { type: 'cp', value: 30 } }),
+  )
+  reviewState = { result: { moves, whiteWins: [50, 50, 50, 50, 50, 50, 50, 100], accuracy: null } }
+  visit(`?pgn=${encodeURIComponent(SCHOLAR)}`)
+  render(<GameReview />)
+
+  await userEvent.keyboard('{End}')
+  expect(screen.getByTestId('eval-bar')).toHaveTextContent('1-0')
+})
+
+it('leaves the eval bar empty on a ply the engine has not reached', async () => {
+  const { reviewedMove } = await import('../ui/review.fixtures')
+  reviewState = { result: { moves: [reviewedMove({ ply: 0, label: 'best' })], whiteWins: [50, 50], accuracy: null } }
+  visit(`?pgn=${encodeURIComponent(SCHOLAR)}`)
+  render(<GameReview />)
+
+  await userEvent.keyboard('{End}')
+  expect(screen.getByTestId('eval-bar')).toHaveTextContent('…')
+})
