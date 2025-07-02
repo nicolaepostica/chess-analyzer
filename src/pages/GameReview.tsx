@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
+import type { Score } from '../engine/uci'
 import type { Square } from '../game/game'
 import { parseGameRecord, type RecordResult } from '../game/record'
 import { useGameReview } from '../hooks/useGameReview'
@@ -23,6 +24,13 @@ const FIELD =
 const FETCH_ERRORS = {
   'not-found': 'Game not found in the archive yet — chess.com may take a minute to publish it.',
   network: 'Could not reach chess.com.',
+}
+
+/** A finished game has no engine score; show the result instead. */
+const RESULTS: Record<number, { score: Score; readout: string }> = {
+  100: { score: { type: 'cp', value: 10000 }, readout: '1-0' },
+  50: { score: { type: 'cp', value: 0 }, readout: '½-½' },
+  0: { score: { type: 'cp', value: -10000 }, readout: '0-1' },
 }
 
 function recordError(result: RecordResult): string | null {
@@ -131,6 +139,10 @@ export function GameReview() {
   const moves = review.result.moves
   const move = current > 0 ? (moves[current - 1] ?? null) : null
   const fen = record?.positions[current]
+  // Start: the engine's view of the first move. After a move: its evaluation, or
+  // the result when the game ended there. A ply not reached yet stays empty.
+  const finished = move && !move.playedScoreWhite ? RESULTS[review.result.whiteWins[current]] : undefined
+  const barScore = current === 0 ? (moves[0]?.bestScoreWhite ?? null) : (move?.playedScoreWhite ?? finished?.score ?? null)
 
   return (
     <div className="flex flex-col gap-6">
@@ -173,7 +185,7 @@ export function GameReview() {
           <div className="flex flex-col items-center gap-6 wide:grid wide:grid-cols-[minmax(0,680px)_450px] wide:items-start wide:justify-center">
             <div className="w-full max-w-[680px]">
               <div className="flex w-full gap-2.5">
-                <EvalBar score={move?.playedScoreWhite ?? moves[0]?.bestScoreWhite ?? null} orientation={orientation} />
+                <EvalBar score={barScore} readout={finished?.readout} orientation={orientation} />
                 <Board
                   fen={fen}
                   dests={NO_DESTS}
