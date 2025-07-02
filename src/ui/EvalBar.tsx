@@ -18,9 +18,12 @@ export function formatScore(score: Score): string {
 export function EvalBar({
   score,
   orientation,
+  readout,
 }: {
   score: Score | null
   orientation: 'white' | 'black'
+  /** Replaces the formatted score, e.g. with a game result. */
+  readout?: string
 }) {
   const whiteShare = score ? whiteWinProbability(score) : 0.5
 
@@ -45,7 +48,7 @@ export function EvalBar({
         needed.
       */}
       <span className="absolute inset-x-0.5 bottom-1 rounded-sm bg-well/85 py-px text-center font-mono text-[10px] font-semibold text-fg tabular-nums">
-        {score ? formatScore(score) : '…'}
+        {readout ?? (score ? formatScore(score) : '…')}
       </span>
     </div>
   )
