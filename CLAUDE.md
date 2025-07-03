@@ -150,7 +150,7 @@ than its own height, so it cannot drift away from the board.
 - Commit messages use **Conventional Commits** (`feat:`, `fix:`, `test(ui):`).
   The `[module]` rule in the user's global `CLAUDE.md` applies only to Odoo
   addons and explicitly does not apply here.
-- Feature work happens on a branch off `main`; do not commit to `main` directly.
+- Work happens directly on `main` (owner's decision, 2025-07-03); no feature branches.
 - Code, comments, UI strings and `docs/` are **English**. There is no i18n.
 - The project is GPL-3.0 because Stockfish is. Do not add dependencies under
   incompatible licenses.
