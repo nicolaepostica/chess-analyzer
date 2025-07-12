@@ -47,7 +47,9 @@ Two invariants the suite relies on:
 - **Game review handles**: `data-testid` `eval-graph`, `graph-marker`,
   `review-move` (with `aria-current` on the current move), `review-progress`,
   `accuracy-white`, `accuracy-black`, `count-<label>-<white|black>`; buttons
-  `Review PGN`, `Retry`, `Analyze position`; the `pgn-input` textarea.
+  `Review PGN`, `Retry`, `Analyze position`, `First move`, `Previous move`,
+  `Play`/`Pause`, `Next move`, `Last move`; label badges are `role="img"` named
+  after the label (`Blunder`, `Book`, …); the `pgn-input` textarea.
 
 The canonical fixture across the whole codebase is the mate-in-one position
 `6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1`, best move `a1a8`, score
