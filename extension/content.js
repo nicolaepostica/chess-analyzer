@@ -64,6 +64,11 @@
       color: '#04050A',
       font: `600 ${compact ? '12px' : '15px'}/1.2 system-ui, sans-serif`,
       cursor: 'pointer',
+      // Archive cells are pointer-events: none so that the row-wide link
+      // underneath catches clicks; without this, clicks fall through to it.
+      pointerEvents: 'auto',
+      position: 'relative',
+      zIndex: '1',
     })
     button.addEventListener('click', async (event) => {
       event.preventDefault()
