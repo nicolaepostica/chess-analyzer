@@ -193,3 +193,28 @@ it('leaves the eval bar empty on a ply the engine has not reached', async () => 
   await userEvent.keyboard('{End}')
   expect(screen.getByTestId('eval-bar')).toHaveTextContent('…')
 })
+
+it('navigates with the control buttons', async () => {
+  visit(`?pgn=${encodeURIComponent(SCHOLAR)}`)
+  render(<GameReview />)
+  await userEvent.click(screen.getByRole('button', { name: 'Next move' }))
+  expect(board()).toHaveAttribute('data-fen', AFTER_E4)
+  await userEvent.click(screen.getByRole('button', { name: 'Last move' }))
+  expect(board()).toHaveAttribute('data-fen', lastRecord()!.positions[7])
+  await userEvent.click(screen.getByRole('button', { name: 'First move' }))
+  expect(board()).toHaveAttribute('data-fen', START)
+})
+
+it('plays through the game one move per second and stops at the end', async () => {
+  vi.useFakeTimers({ shouldAdvanceTime: true })
+  visit(`?pgn=${encodeURIComponent(SCHOLAR)}`)
+  render(<GameReview />)
+  await userEvent.click(screen.getByRole('button', { name: 'Play' }))
+  await act(async () => vi.advanceTimersByTime(1000))
+  expect(board()).toHaveAttribute('data-fen', AFTER_E4)
+  // Each step schedules the next after React commits, so advance one tick at a time.
+  for (let tick = 0; tick < 10; tick += 1) await act(async () => vi.advanceTimersByTime(1000))
+  expect(board()).toHaveAttribute('data-fen', lastRecord()!.positions[7])
+  expect(screen.getByRole('button', { name: 'Play' })).toBeDisabled()
+  vi.useRealTimers()
+})
