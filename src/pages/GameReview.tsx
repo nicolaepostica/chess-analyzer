@@ -10,12 +10,14 @@ import { Card } from '../ui/Card'
 import { EvalBar } from '../ui/EvalBar'
 import { EvalGraph } from '../ui/EvalGraph'
 import { MoveHint } from '../ui/MoveHint'
+import { ReviewControls } from '../ui/ReviewControls'
 import { ReviewMoveList } from '../ui/ReviewMoveList'
 import { ReviewSummary } from '../ui/ReviewSummary'
 
 // The board is read-only here; a stable empty map keeps Board's sync effect quiet.
 const NO_DESTS: Map<Square, Square[]> = new Map()
 const noMove = () => {}
+const PLAY_INTERVAL_MS = 1000
 
 const ALERT = 'rounded-lg border border-accent-alt/40 bg-accent-alt/10 p-3 text-sm'
 const FIELD =
@@ -69,9 +71,24 @@ export function GameReview() {
   const review = useGameReview(record)
 
   const [current, setCurrent] = useState(0)
-  useEffect(() => setCurrent(0), [record])
+  const [playing, setPlaying] = useState(false)
+  useEffect(() => {
+    setCurrent(0)
+    setPlaying(false)
+  }, [record])
   const last = record ? record.positions.length - 1 : 0
   const go = useCallback((position: number) => setCurrent(Math.max(0, Math.min(last, position))), [last])
+
+  // Autoplay: one move per second, stopping on the last position.
+  useEffect(() => {
+    if (!playing) return
+    if (current >= last) {
+      setPlaying(false)
+      return
+    }
+    const timer = setTimeout(() => setCurrent((position) => Math.min(last, position + 1)), PLAY_INTERVAL_MS)
+    return () => clearTimeout(timer)
+  }, [playing, current, last])
 
   useEffect(() => {
     const onKey = (event: KeyboardEvent) => {
@@ -207,6 +224,18 @@ export function GameReview() {
               </Card>
               <Card title="Moves">
                 <ReviewMoveList moves={moves} current={current} onSelect={go} />
+                <div className="mt-3">
+                  <ReviewControls
+                    playing={playing}
+                    atStart={current === 0}
+                    atEnd={current === last}
+                    onFirst={() => go(0)}
+                    onPrevious={() => go(current - 1)}
+                    onTogglePlay={() => setPlaying((value) => !value)}
+                    onNext={() => go(current + 1)}
+                    onLast={() => go(last)}
+                  />
+                </div>
               </Card>
               <Card title="This move">
                 {current > 0 && !move ? (
