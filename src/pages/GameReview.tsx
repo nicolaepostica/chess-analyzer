@@ -180,27 +180,8 @@ export function GameReview() {
 
       {record && fen && (
         <>
-          <Card
-            title="Evaluation"
-            aside={
-              !review.done && (
-                <span data-testid="review-progress" className="font-mono text-xs text-fg-secondary">
-                  Analyzing… {review.evaluated} / {review.total}
-                </span>
-              )
-            }
-          >
-            <EvalGraph
-              whiteWins={review.result.whiteWins}
-              total={record.positions.length}
-              moves={moves}
-              current={current}
-              onSelect={go}
-            />
-          </Card>
-
           <div className="flex flex-col items-center gap-6 wide:grid wide:grid-cols-[minmax(0,680px)_450px] wide:items-start wide:justify-center">
-            <div className="w-full max-w-[680px]">
+            <div data-testid="board-column" className="flex w-full max-w-[680px] flex-col gap-2">
               <div className="flex w-full gap-2.5">
                 <EvalBar score={barScore} readout={finished?.readout} orientation={orientation} />
                 <Board
@@ -210,6 +191,21 @@ export function GameReview() {
                   turn={fen.split(' ')[1] === 'w' ? 'white' : 'black'}
                   onMove={noMove}
                 />
+              </div>
+              {/* Indented by the eval bar's width (w-7) plus the gap, so it lines up with the board. */}
+              <div className="pl-[2.375rem]">
+                <EvalGraph
+                  whiteWins={review.result.whiteWins}
+                  total={record.positions.length}
+                  moves={moves}
+                  current={current}
+                  onSelect={go}
+                />
+                {!review.done && (
+                  <p data-testid="review-progress" className="mt-1 text-right font-mono text-xs text-fg-secondary">
+                    Analyzing… {review.evaluated} / {review.total}
+                  </p>
+                )}
               </div>
             </div>
 
