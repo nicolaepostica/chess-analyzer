@@ -218,3 +218,12 @@ it('plays through the game one move per second and stops at the end', async () =
   expect(screen.getByRole('button', { name: 'Play' })).toBeDisabled()
   vi.useRealTimers()
 })
+
+it('puts the evaluation graph under the board', () => {
+  visit(`?pgn=${encodeURIComponent(SCHOLAR)}`)
+  render(<GameReview />)
+  const column = board().closest('[data-testid="board-column"]')!
+  const graph = screen.getByTestId('eval-graph')
+  expect(column).toContainElement(graph)
+  expect(board().compareDocumentPosition(graph) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
