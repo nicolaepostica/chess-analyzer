@@ -227,3 +227,15 @@ it('puts the evaluation graph under the board', () => {
   expect(column).toContainElement(graph)
   expect(board().compareDocumentPosition(graph) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
 })
+
+it('lays out board, moves and summary as three columns in that order', () => {
+  visit(`?pgn=${encodeURIComponent(SCHOLAR)}`)
+  render(<GameReview />)
+  const columns = ['board-column', 'moves-column', 'summary-column'].map((id) => screen.getByTestId(id))
+  expect(columns[0].parentElement).toBe(columns[1].parentElement)
+  expect(columns[1].parentElement).toBe(columns[2].parentElement)
+  expect(columns[0].compareDocumentPosition(columns[1]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(columns[1].compareDocumentPosition(columns[2]) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+  expect(columns[1]).toContainElement(screen.getByRole('button', { name: 'Next move' }))
+  expect(columns[2]).toContainElement(screen.getByTestId('accuracy-white'))
+})
