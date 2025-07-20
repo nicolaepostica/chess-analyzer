@@ -32,7 +32,7 @@ export function EvalGraph({ whiteWins, total, moves, current, onSelect }: EvalGr
   }
 
   return (
-    <div data-testid="eval-graph" className="relative h-24 w-full overflow-hidden rounded-lg border border-border bg-well">
+    <div data-testid="eval-graph" className="relative h-14 w-full overflow-hidden rounded-lg border border-border bg-well">
       <svg
         viewBox={`0 0 ${WIDTH} ${HEIGHT}`}
         preserveAspectRatio="none"
