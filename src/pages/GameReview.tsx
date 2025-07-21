@@ -180,7 +180,7 @@ export function GameReview() {
 
       {record && fen && (
         <>
-          <div className="flex flex-col items-center gap-6 wide:grid wide:grid-cols-[minmax(0,680px)_450px] wide:items-start wide:justify-center">
+          <div className="flex flex-col items-center gap-6 wide:grid wide:grid-cols-[minmax(0,640px)_minmax(0,380px)_minmax(0,320px)] wide:items-start wide:justify-center">
             <div data-testid="board-column" className="flex w-full max-w-[680px] flex-col gap-2">
               <div className="flex w-full gap-2.5">
                 <EvalBar score={barScore} readout={finished?.readout} orientation={orientation} />
@@ -209,15 +209,7 @@ export function GameReview() {
               </div>
             </div>
 
-            <div className="flex w-full min-w-0 max-w-[650px] flex-col gap-4 wide:max-w-none">
-              <Card title="Game review">
-                <ReviewSummary
-                  moves={moves}
-                  accuracy={review.result.accuracy}
-                  whiteName={whiteName}
-                  blackName={blackName}
-                />
-              </Card>
+            <div data-testid="moves-column" className="flex w-full min-w-0 max-w-[650px] flex-col gap-4 wide:max-w-none">
               <Card title="Moves">
                 <ReviewMoveList moves={moves} current={current} onSelect={go} />
                 <div className="mt-3">
@@ -239,6 +231,17 @@ export function GameReview() {
                 ) : (
                   <MoveHint move={move} onAnalyze={analyze} />
                 )}
+              </Card>
+            </div>
+
+            <div data-testid="summary-column" className="flex w-full min-w-0 max-w-[650px] flex-col gap-4 wide:max-w-none">
+              <Card title="Game review">
+                <ReviewSummary
+                  moves={moves}
+                  accuracy={review.result.accuracy}
+                  whiteName={whiteName}
+                  blackName={blackName}
+                />
               </Card>
             </div>
           </div>
