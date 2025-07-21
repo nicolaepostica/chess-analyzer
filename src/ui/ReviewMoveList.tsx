@@ -53,7 +53,7 @@ export function ReviewMoveList({ moves, current, onSelect }: ReviewMoveListProps
   }
 
   return (
-    <ol className="grid max-h-80 grid-cols-[2.5rem_1fr_1fr] gap-x-2 gap-y-0.5 overflow-y-auto font-mono text-[13px]">
+    <ol className="grid max-h-[28rem] grid-cols-[2.5rem_1fr_1fr] gap-x-2 gap-y-0.5 overflow-y-auto font-mono text-[13px]">
       {rows.map((row) => (
         <li key={`${row.number}-${row.white?.ply ?? row.black?.ply}`} className="contents">
           <span className="py-0.5 text-fg-muted">{row.number}.</span>
