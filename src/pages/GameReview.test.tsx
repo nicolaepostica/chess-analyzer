@@ -239,3 +239,11 @@ it('lays out board, moves and summary as three columns in that order', () => {
   expect(columns[1]).toContainElement(screen.getByRole('button', { name: 'Next move' }))
   expect(columns[2]).toContainElement(screen.getByTestId('accuracy-white'))
 })
+
+it('shows the current move above the move list', () => {
+  visit(`?pgn=${encodeURIComponent(SCHOLAR)}`)
+  render(<GameReview />)
+  const thisMove = screen.getByRole('heading', { name: 'This move' })
+  const movesHeading = screen.getByRole('heading', { name: 'Moves' })
+  expect(thisMove.compareDocumentPosition(movesHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
