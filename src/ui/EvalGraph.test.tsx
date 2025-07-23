@@ -35,3 +35,20 @@ it('jumps to the position under the click', () => {
   fireEvent.click(svg, { clientX: 200 })
   expect(onSelect).toHaveBeenCalledWith(4)
 })
+
+it('marks the current position on the curve', () => {
+  render(<EvalGraph whiteWins={[50, 52, 20, 80, 75]} total={5} moves={[]} current={2} onSelect={() => {}} />)
+  const dot = screen.getByTestId('graph-current')
+  expect(dot.style.left).toBe('50%')
+  expect(dot.style.top).toBe('80%')
+})
+
+it('keeps the current marker inside the graph at the edges', () => {
+  render(<EvalGraph whiteWins={[50, 52]} total={5} moves={[]} current={0} onSelect={() => {}} />)
+  expect(parseFloat(screen.getByTestId('graph-current').style.left)).toBeGreaterThan(0)
+})
+
+it('hides the current marker until that position is evaluated', () => {
+  render(<EvalGraph whiteWins={[50, 52]} total={5} moves={[]} current={4} onSelect={() => {}} />)
+  expect(screen.queryByTestId('graph-current')).not.toBeInTheDocument()
+})
