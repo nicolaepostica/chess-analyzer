@@ -31,6 +31,10 @@ export function EvalGraph({ whiteWins, total, moves, current, onSelect }: EvalGr
     onSelect(Math.round(fraction * last))
   }
 
+  // Kept a little inside the edges so the start and end positions stay visible.
+  const currentLeft = Math.min(99, Math.max(1, (x(current) / WIDTH) * 100))
+  const currentWin = whiteWins[current]
+
   return (
     <div data-testid="eval-graph" className="relative h-14 w-full overflow-hidden rounded-lg border border-border bg-well">
       <svg
@@ -44,8 +48,11 @@ export function EvalGraph({ whiteWins, total, moves, current, onSelect }: EvalGr
         {area && <polygon points={area} className="fill-fg/85" />}
         <line x1={0} x2={WIDTH} y1={HEIGHT / 2} y2={HEIGHT / 2} className="stroke-fg-muted/40" strokeWidth={1} vectorEffect="non-scaling-stroke" />
         {points && <polyline points={points} fill="none" className="stroke-fg" strokeWidth={1.5} vectorEffect="non-scaling-stroke" />}
-        <line x1={x(current)} x2={x(current)} y1={0} y2={HEIGHT} className="stroke-accent" strokeWidth={2} vectorEffect="non-scaling-stroke" />
       </svg>
+      <span
+        className="pointer-events-none absolute inset-y-0 w-0.5 -translate-x-1/2 bg-accent"
+        style={{ left: `${currentLeft}%` }}
+      />
       {/* Markers are HTML so they stay round while the SVG stretches. */}
       {moves
         .filter((move) => NOTABLE.has(move.label) && whiteWins[move.ply + 1] !== undefined)
@@ -62,6 +69,13 @@ export function EvalGraph({ whiteWins, total, moves, current, onSelect }: EvalGr
             }}
           />
         ))}
+      {currentWin !== undefined && (
+        <span
+          data-testid="graph-current"
+          className="pointer-events-none absolute size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-bg bg-accent shadow-[0_0_0_3px_rgba(45,212,255,0.35)]"
+          style={{ left: `${currentLeft}%`, top: `${Math.min(92, Math.max(8, y(currentWin)))}%` }}
+        />
+      )}
     </div>
   )
 }
