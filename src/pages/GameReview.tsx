@@ -210,6 +210,13 @@ export function GameReview() {
             </div>
 
             <div data-testid="moves-column" className="flex w-full min-w-0 max-w-[650px] flex-col gap-4 wide:max-w-none">
+              <Card title="This move">
+                {current > 0 && !move ? (
+                  <p className="text-sm text-fg-secondary">Not analysed yet.</p>
+                ) : (
+                  <MoveHint move={move} onAnalyze={analyze} />
+                )}
+              </Card>
               <Card title="Moves">
                 <ReviewMoveList moves={moves} current={current} onSelect={go} />
                 <div className="mt-3">
@@ -224,13 +231,6 @@ export function GameReview() {
                     onLast={() => go(last)}
                   />
                 </div>
-              </Card>
-              <Card title="This move">
-                {current > 0 && !move ? (
-                  <p className="text-sm text-fg-secondary">Not analysed yet.</p>
-                ) : (
-                  <MoveHint move={move} onAnalyze={analyze} />
-                )}
               </Card>
             </div>
 
