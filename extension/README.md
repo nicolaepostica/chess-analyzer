@@ -41,6 +41,9 @@ the board (you, when you played), whichever played in the game; otherwise White.
 
 ## Development
 
+The icons in `icons/` are drawn by `python3 scripts/build-extension-icons.py`
+(Pillow; uses the Apple Symbols font for the knight).
+
 Point the extension at a local build by changing `REVIEW_BASE` at the top of
 `content.js` to `http://localhost:5173/`.
 
