@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from 'react'
-import type { Score } from '../engine/uci'
-import type { Square } from '../game/game'
+import type { EvalUpdate, Score } from '../engine/uci'
+import { createGame, legalDests, tryMove } from '../game/game'
 import { parseGameRecord, type RecordResult } from '../game/record'
+import { useAnalysis } from '../hooks/useAnalysis'
 import { useGameReview } from '../hooks/useGameReview'
 import { fetchChessComPgn, parseReviewParams } from '../sources/chesscom'
 import { Board } from '../ui/Board'
@@ -13,11 +14,22 @@ import { MoveHint } from '../ui/MoveHint'
 import { ReviewControls } from '../ui/ReviewControls'
 import { ReviewMoveList } from '../ui/ReviewMoveList'
 import { ReviewSummary } from '../ui/ReviewSummary'
+import type { Arrow } from '../ui/Board'
+import { linesToArrows } from '../ui/arrows'
 
-// The board is read-only here; a stable empty map keeps Board's sync effect quiet.
-const NO_DESTS: Map<Square, Square[]> = new Map()
-const noMove = () => {}
 const PLAY_INTERVAL_MS = 1000
+const EXPLORE_OPTIONS = { depth: 18, multiPV: 1, chess960: false }
+const NO_ARROWS: Arrow[] = []
+
+/**
+ * A live engine for a variation the user plays on the board. Mounted only while
+ * exploring, so its worker exists only then and never runs during plain review.
+ */
+function ExploreEngine({ fen, onLines }: { fen: string; onLines: (lines: EvalUpdate[]) => void }) {
+  const { lines } = useAnalysis(fen, EXPLORE_OPTIONS)
+  useEffect(() => onLines(lines), [lines, onLines])
+  return null
+}
 
 const ALERT = 'rounded-lg border border-accent-alt/40 bg-accent-alt/10 p-3 text-sm'
 const FIELD =
@@ -72,12 +84,22 @@ export function GameReview() {
 
   const [current, setCurrent] = useState(0)
   const [playing, setPlaying] = useState(false)
+  // A position reached by moving pieces on the board, away from the game.
+  const [variation, setVariation] = useState<string | null>(null)
+  const [exploreLines, setExploreLines] = useState<EvalUpdate[]>([])
   useEffect(() => {
     setCurrent(0)
     setPlaying(false)
+    setVariation(null)
   }, [record])
   const last = record ? record.positions.length - 1 : 0
-  const go = useCallback((position: number) => setCurrent(Math.max(0, Math.min(last, position))), [last])
+  const go = useCallback(
+    (position: number) => {
+      setVariation(null)
+      setCurrent(Math.max(0, Math.min(last, position)))
+    },
+    [last],
+  )
 
   // Autoplay: one move per second, stopping on the last position.
   useEffect(() => {
@@ -156,10 +178,32 @@ export function GameReview() {
   const moves = review.result.moves
   const move = current > 0 ? (moves[current - 1] ?? null) : null
   const fen = record?.positions[current]
+  const displayFen = variation ?? fen
+
+  // Board's sync effect keys on dests and arrows by identity: memoise both per position.
+  const dests = useMemo(() => (displayFen ? legalDests(createGame(displayFen)) : new Map()), [displayFen])
+  const nextBest = moves[current]?.bestUci ?? null
+  const arrows = useMemo<Arrow[]>(() => {
+    if (variation) return linesToArrows(exploreLines)
+    return nextBest ? [{ orig: nextBest.slice(0, 2), dest: nextBest.slice(2, 4), brush: 'green' }] : NO_ARROWS
+  }, [variation, exploreLines, nextBest])
+
+  const explore = useCallback(
+    (from: string, to: string) => {
+      if (!displayFen) return
+      const game = createGame(displayFen)
+      if (!tryMove(game, from, to)) return
+      setPlaying(false)
+      setExploreLines([])
+      setVariation(game.fen())
+    },
+    [displayFen],
+  )
   // Start: the engine's view of the first move. After a move: its evaluation, or
   // the result when the game ended there. A ply not reached yet stays empty.
   const finished = move && !move.playedScoreWhite ? RESULTS[review.result.whiteWins[current]] : undefined
-  const barScore = current === 0 ? (moves[0]?.bestScoreWhite ?? null) : (move?.playedScoreWhite ?? finished?.score ?? null)
+  const reviewScore = current === 0 ? (moves[0]?.bestScoreWhite ?? null) : (move?.playedScoreWhite ?? finished?.score ?? null)
+  const barScore = variation ? (exploreLines[0]?.score ?? null) : reviewScore
 
   return (
     <div className="flex flex-col gap-6">
@@ -178,18 +222,21 @@ export function GameReview() {
 
       {!record && !loading && pasteBox}
 
-      {record && fen && (
+      {variation && <ExploreEngine fen={variation} onLines={setExploreLines} />}
+
+      {record && displayFen && (
         <>
           <div className="flex flex-col items-center gap-6 wide:grid wide:grid-cols-[minmax(0,640px)_minmax(0,380px)_minmax(0,320px)] wide:items-start wide:justify-center">
             <div data-testid="board-column" className="flex w-full max-w-[680px] flex-col gap-2">
               <div className="flex w-full gap-2.5">
-                <EvalBar score={barScore} readout={finished?.readout} orientation={orientation} />
+                <EvalBar score={barScore} readout={variation ? undefined : finished?.readout} orientation={orientation} />
                 <Board
-                  fen={fen}
-                  dests={NO_DESTS}
+                  fen={displayFen}
+                  dests={dests}
                   orientation={orientation}
-                  turn={fen.split(' ')[1] === 'w' ? 'white' : 'black'}
-                  onMove={noMove}
+                  turn={displayFen.split(' ')[1] === 'w' ? 'white' : 'black'}
+                  arrows={arrows}
+                  onMove={explore}
                 />
               </div>
               {/* Indented by the eval bar's width (w-7) plus the gap, so it lines up with the board. */}
@@ -211,7 +258,21 @@ export function GameReview() {
 
             <div data-testid="moves-column" className="flex w-full min-w-0 max-w-[650px] flex-col gap-4 wide:max-w-none">
               <Card title="This move">
-                {current > 0 && !move ? (
+                {variation ? (
+                  <div className="flex flex-col gap-2 text-sm">
+                    <p className="text-fg-secondary">
+                      Exploring your own moves. The arrow and the bar show the engine's view of this position.
+                    </p>
+                    <div className="flex gap-2">
+                      <button type="button" className={SECONDARY_BUTTON} onClick={() => setVariation(null)}>
+                        Back to game
+                      </button>
+                      <button type="button" className={SECONDARY_BUTTON} onClick={() => analyze(variation)}>
+                        Analyze position
+                      </button>
+                    </div>
+                  </div>
+                ) : current > 0 && !move ? (
                   <p className="text-sm text-fg-secondary">Not analysed yet.</p>
                 ) : (
                   <MoveHint move={move} onAnalyze={analyze} />
