@@ -7,9 +7,26 @@ import type { GameReviewState } from '../hooks/useGameReview'
 import type { FetchResult } from '../sources/chesscom'
 import type { BoardProps } from '../ui/Board'
 
+let boardProps: BoardProps | null = null
 vi.mock('../ui/Board', () => ({
-  Board: ({ fen, orientation }: BoardProps) => <div data-testid="board" data-fen={fen} data-orientation={orientation} />,
+  Board: (props: BoardProps) => {
+    boardProps = props
+    return <div data-testid="board" data-fen={props.fen} data-orientation={props.orientation} />
+  },
 }))
+
+// Exploring a variation starts a live engine; stand in for it. One stable
+// state object, as the real hook keeps its state between renders.
+vi.mock('../hooks/useAnalysis', () => {
+  const state = {
+    lines: [{ depth: 18, multipv: 1, score: { type: 'cp', value: 42 }, pv: ['g8f6', 'c2c4'] }],
+    depth: 18,
+    stale: false,
+    multiThreaded: true,
+    error: null,
+  }
+  return { useAnalysis: () => state }
+})
 
 let reviewState: Partial<GameReviewState> = {}
 const reviewedRecords: (GameRecord | null)[] = []
@@ -246,4 +263,40 @@ it('shows the current move above the move list', () => {
   const thisMove = screen.getByRole('heading', { name: 'This move' })
   const movesHeading = screen.getByRole('heading', { name: 'Moves' })
   expect(thisMove.compareDocumentPosition(movesHeading) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy()
+})
+
+const AFTER_D4 = 'rnbqkbnr/pppppppp/8/8/3P4/8/PPP1PPPP/RNBQKBNR b KQkq - 0 1'
+
+it('shows the best move from the current position as an arrow', async () => {
+  const { reviewedMove } = await import('../ui/review.fixtures')
+  reviewState = {
+    result: { moves: [reviewedMove({ ply: 0, label: 'good', bestUci: 'd2d4' })], whiteWins: [50, 50], accuracy: null },
+  }
+  visit(`?pgn=${encodeURIComponent(SCHOLAR)}`)
+  render(<GameReview />)
+  expect(boardProps?.arrows).toEqual([{ orig: 'd2', dest: 'd4', brush: 'green' }])
+})
+
+it('lets you play moves on the board to explore, then go back', async () => {
+  visit(`?pgn=${encodeURIComponent(SCHOLAR)}`)
+  render(<GameReview />)
+  expect(boardProps?.dests.get('d2')).toContain('d4')
+
+  act(() => boardProps!.onMove('d2', 'd4'))
+  expect(board()).toHaveAttribute('data-fen', AFTER_D4)
+  // The live engine's line from the explored position.
+  expect(boardProps?.arrows).toEqual([{ orig: 'g8', dest: 'f6', brush: 'green' }])
+  expect(screen.getByTestId('eval-bar')).toHaveTextContent('+0.42')
+
+  await userEvent.click(screen.getByRole('button', { name: 'Back to game' }))
+  expect(board()).toHaveAttribute('data-fen', START)
+})
+
+it('leaves the variation when navigating the game', async () => {
+  visit(`?pgn=${encodeURIComponent(SCHOLAR)}`)
+  render(<GameReview />)
+  act(() => boardProps!.onMove('d2', 'd4'))
+  await userEvent.keyboard('{ArrowRight}')
+  expect(board()).toHaveAttribute('data-fen', AFTER_E4)
+  expect(screen.queryByRole('button', { name: 'Back to game' })).not.toBeInTheDocument()
 })
