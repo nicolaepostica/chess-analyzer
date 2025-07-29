@@ -3,5 +3,4 @@ dist/
 public/stockfish/
 tsconfig.tsbuildinfo
 .DS_Store
-.superpowers/
 public/coi-serviceworker.min.js
