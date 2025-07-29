@@ -31,6 +31,13 @@ it('counts labels per player', () => {
   expect(screen.getByTestId('count-best-white')).toHaveTextContent('1')
 })
 
+it('colours the counts and shows the label badge, chess.com-style', () => {
+  render(<ReviewSummary moves={moves} accuracy={null} whiteName="a" blackName="b" />)
+  expect(screen.getByTestId('count-blunder-white')).toHaveClass('text-label-blunder')
+  expect(screen.getByTestId('count-best-black')).toHaveClass('text-label-best')
+  expect(screen.getByRole('img', { name: 'Blunder' })).toBeInTheDocument()
+})
+
 it('names the better move after a mistake', () => {
   const move = reviewedMove({
     ply: 0,
