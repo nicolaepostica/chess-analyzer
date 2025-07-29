@@ -1,4 +1,6 @@
 import type { ReviewedMove } from '../game/review'
+import { Fragment } from 'react'
+import { hasBadge, LabelBadge } from './LabelBadge'
 import { LABEL_META, LABEL_ORDER } from './labels'
 
 export type ReviewSummaryProps = {
@@ -27,27 +29,24 @@ export function ReviewSummary({ moves, accuracy, whiteName, blackName }: ReviewS
         {player(whiteName, accuracy?.white, 'accuracy-white', 'text-left')}
         {player(blackName, accuracy?.black, 'accuracy-black', 'text-right')}
       </div>
-      <table className="w-full text-sm">
-        <tbody>
-          {LABEL_ORDER.map((label) => {
-            const meta = LABEL_META[label]
-            return (
-              <tr key={label}>
-                <td data-testid={`count-${label}-white`} className="w-8 text-left font-mono text-fg">
-                  {count(label, 'w')}
-                </td>
-                <td className={`text-center ${meta.textClass}`}>
-                  {meta.glyph && <span className="mr-1 font-mono">{meta.glyph}</span>}
-                  {meta.name}
-                </td>
-                <td data-testid={`count-${label}-black`} className="w-8 text-right font-mono text-fg">
-                  {count(label, 'b')}
-                </td>
-              </tr>
-            )
-          })}
-        </tbody>
-      </table>
+      <div className="grid grid-cols-[1fr_2.5rem_2.25rem_2.5rem] items-center gap-x-1 gap-y-1.5 text-sm">
+        {LABEL_ORDER.map((label) => {
+          const meta = LABEL_META[label]
+          const tone = label === 'good' ? 'text-fg-secondary' : meta.textClass
+          return (
+            <Fragment key={label}>
+              <span className="text-fg-secondary">{meta.name}</span>
+              <span data-testid={`count-${label}-white`} className={`text-right font-mono font-semibold ${tone}`}>
+                {count(label, 'w')}
+              </span>
+              <span className="flex justify-center">{hasBadge(label) && <LabelBadge label={label} />}</span>
+              <span data-testid={`count-${label}-black`} className={`font-mono font-semibold ${tone}`}>
+                {count(label, 'b')}
+              </span>
+            </Fragment>
+          )
+        })}
+      </div>
     </div>
   )
 }
