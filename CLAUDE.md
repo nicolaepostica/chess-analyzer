@@ -149,7 +149,9 @@ than its own height, so it cannot drift away from the board.
 
 ## Conventions
 
-- Commit messages use **Conventional Commits** (`feat:`, `fix:`, `test(ui):`).
+- Commit messages are plain sentences in the imperative ("Add an icon"). The only
+  prefix allowed is `fix:` / `fix(scope):`, and only for bug fixes; never `feat:`,
+  `docs:`, `ci:`, `chore:` or other Conventional Commit types.
   The `[module]` rule in the user's global `CLAUDE.md` applies only to Odoo
   addons and explicitly does not apply here.
 - Work happens directly on `main` (owner's decision, 2025-07-03); no feature branches.
