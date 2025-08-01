@@ -20,6 +20,12 @@ After editing the files, press the reload icon on the extension's card.
 - In the games archive (`/games/archive/<user>`), as a small **Analyze** button
   next to each game's accuracy.
 
+## Toolbar icon
+
+Clicking the extension's icon in Chrome's toolbar opens the site,
+https://nicolaepostica.github.io/chess-analyzer/. The same link is on the
+extension's page in `chrome://extensions` ("Website").
+
 ## What it does and sends
 
 On click it reads the game from chess.com's own
@@ -33,7 +39,8 @@ public API archive. If the callback fails, the link carries only
 `game`/`user`, and the page looks the game up in the public archive instead.
 
 No analytics, no other network requests, no permissions beyond running on
-`https://www.chess.com/*`.
+`https://www.chess.com/*`. The background worker (`background.js`) only opens
+the site when the toolbar icon is clicked.
 
 `user` is the player whose side is shown at the bottom: the `?username=` from an
 archive link, the archive owner, or the player chess.com shows at the bottom of
