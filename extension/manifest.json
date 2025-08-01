@@ -3,11 +3,24 @@
   "name": "Chess Analyzer — Analyze free",
   "version": "0.1.0",
   "description": "Adds an \"Analyze free\" button to finished chess.com games that opens a free Stockfish Game Review.",
+  "homepage_url": "https://nicolaepostica.github.io/chess-analyzer/",
   "icons": {
     "16": "icons/icon-16.png",
     "32": "icons/icon-32.png",
     "48": "icons/icon-48.png",
     "128": "icons/icon-128.png"
+  },
+  "action": {
+    "default_title": "Open Chess Analyzer",
+    "default_icon": {
+      "16": "icons/icon-16.png",
+      "32": "icons/icon-32.png",
+      "48": "icons/icon-48.png",
+      "128": "icons/icon-128.png"
+    }
+  },
+  "background": {
+    "service_worker": "background.js"
   },
   "content_scripts": [
     {
