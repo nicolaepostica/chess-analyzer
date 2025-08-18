@@ -57,14 +57,17 @@ The canonical fixture across the whole codebase is the mate-in-one position
 
 ## Architecture
 
-Three modules with hard boundaries, bridged by two hooks.
+Three modules with hard boundaries, bridged by three hooks.
 
 - **`src/engine/`** — the only place that knows UCI and WASM. Never imports React.
 - **`src/game/`** — a `chess.js` wrapper: legality, FEN, PGN, preview, editor
   validation. Imports neither `engine/` nor React. Pure functions over state.
 - **`src/ui/`** — React components that receive data as props and compute nothing.
-- **`src/hooks/useAnalysis.ts`** and **`src/hooks/useGameReview.ts`** — the only
-  points where the engine meets React. `useAnalysis` follows one live position;
+- **`src/hooks/useAnalysis.ts`**, **`src/hooks/useGameReview.ts`** and
+  **`src/hooks/useComputerOpponent.ts`** — the only points where the engine
+  meets React. `useComputerOpponent` owns the engine the user plays against
+  (`Engine.play`, strength-limited, on the clock); a cancelled search resolves
+  to null so a take-back never applies a stale move. `useAnalysis` follows one live position;
   `useGameReview` walks every position of a game once through
   `engine/batch.ts` and re-classifies the moves (`game/review.ts`) after each.
 - **`src/sources/`** — loads games from outside (chess.com public API). No React,
