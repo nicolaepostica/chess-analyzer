@@ -1,7 +1,7 @@
 import type { ReviewedMove } from '../game/review'
-import { figurine } from './figurine'
 import { hasBadge, LabelBadge } from './LabelBadge'
 import { LABEL_META } from './labels'
+import { SanText } from './SanText'
 
 export type ReviewMoveListProps = {
   moves: ReviewedMove[]
@@ -36,18 +36,7 @@ export function ReviewMoveList({ moves, current, onSelect }: ReviewMoveListProps
         className={`flex items-center gap-1.5 rounded px-1.5 py-0.5 text-left hover:bg-white/6 ${tone} ${active ? 'bg-accent/15' : ''}`}
       >
         {badge ? <LabelBadge label={move.label} /> : <span className="size-[18px] shrink-0" />}
-        <span>
-          {[...figurine(move.san, move.color)].map((char, i) =>
-            // Monospace fonts draw chess glyphs tiny; give them a text font and room.
-            /[♔-♟]/.test(char) ? (
-              <span key={i} className="mx-1 inline-block origin-bottom scale-[1.6] font-sans text-[15px] leading-none">
-                {char}
-              </span>
-            ) : (
-              char
-            ),
-          )}
-        </span>
+        <SanText san={move.san} color={move.color} />
       </button>
     )
   }
