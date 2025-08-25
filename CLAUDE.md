@@ -50,6 +50,11 @@ Two invariants the suite relies on:
   `Review PGN`, `Retry`, `Analyze position`, `First move`, `Previous move`,
   `Play`/`Pause`, `Next move`, `Last move`; label badges are `role="img"` named
   after the label (`Blunder`, `Book`, …); the `pgn-input` textarea.
+- **Play handles**: `data-testid` `clock` (with `data-active`), `play-move`;
+  the `level` range input; buttons `Start game`, `White`/`Random`/`Black`, the
+  time-control chips (`1+0` … `No clock`, `aria-pressed`), `Take back`, `Hint`,
+  `Show eval bar`/`Hide eval bar`, `Offer draw`, `Resign`, `Review this game`,
+  `New game`; the result is `role="status"`.
 
 The canonical fixture across the whole codebase is the mate-in-one position
 `6k1/5ppp/8/8/8/8/5PPP/R5K1 w - - 0 1`, best move `a1a8`, score
