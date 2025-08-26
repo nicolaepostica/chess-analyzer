@@ -58,8 +58,14 @@ export function createEngine(transport: EngineTransport): Engine {
   // to see its bestmove — otherwise the engine replies to the old position.
   let previousSearch: Promise<void> = Promise.resolve()
   let searchActive = false
+  // Searches are numbered as they are queued. stop() also cancels every search
+  // still waiting in the queue: without this, a search cancelled before it began
+  // would later run to completion and hold up the ones behind it.
+  let queuedSearches = 0
+  let cancelledUpTo = 0
 
   function stop(): void {
+    cancelledUpTo = queuedSearches
     if (searchActive) transport.send('stop')
   }
 
@@ -73,12 +79,18 @@ export function createEngine(transport: EngineTransport): Engine {
     go: string,
     onBestmove?: (move: string | null) => void,
   ): AsyncGenerator<EvalUpdate> {
+    const id = ++queuedSearches
     const waitForPrevious = previousSearch
     let releaseThisSearch!: () => void
     previousSearch = new Promise<void>((resolve) => {
       releaseThisSearch = resolve
     })
     await waitForPrevious
+    if (id <= cancelledUpTo) {
+      onBestmove?.(null)
+      releaseThisSearch()
+      return
+    }
 
     const queue: EvalUpdate[] = []
     let bestmoveSeen = false
