@@ -30,8 +30,10 @@ Engine binaries (the ~7 MB Stockfish WASM) are copied from `node_modules` into
 - `/import` — Game Review: every move labelled chess.com-style (brilliant … blunder),
   an evaluation graph, and lichess-formula accuracy for both players. Takes a pasted
   PGN, or a chess.com game via URL params (see below).
-- `/best-move`, `/play`, `/freestyle` — stubs for upcoming sub-projects
-  (play vs. computer, Chess960).
+- `/play` — play Stockfish at 11 levels (~800 to full strength, Elo shown) on a
+  clock (1+0 … 15+10 or untimed), with take back, hint, an optional eval bar,
+  draw and resign; a finished game opens in Game Review with one click.
+- `/best-move`, `/freestyle` — stubs for upcoming sub-projects (Chess960).
 
 ## Game review from chess.com
 
