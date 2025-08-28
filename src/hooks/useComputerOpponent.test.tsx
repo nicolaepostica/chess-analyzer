@@ -41,14 +41,28 @@ it('caps nodes on the weakest levels', async () => {
   expect(calls[0].limits).toEqual({ strength: { limit: true, elo: 1320 }, go: { nodes: 50 } })
 })
 
-it('plays on its clock at rated levels', async () => {
+// With UCI_LimitStrength on, Stockfish spends far more of its clock (28 s vs 5 s
+// for the same 3+2 position), so rated levels get a budget from their own clock.
+it('budgets rated levels from their own clock', async () => {
   const { result } = renderHook(() => useComputerOpponent())
-  void result.current.move(START, LEVELS[4], { wtime: 300_000, btime: 290_000, winc: 0, binc: 0 })
+  void result.current.move(AFTER_E4, LEVELS[4], { wtime: 300_000, btime: 30_000, winc: 0, binc: 2000 })
   await waitFor(() => expect(calls).toHaveLength(1))
-  expect(calls[0].limits).toEqual({
-    strength: { limit: true, elo: 1500 },
-    go: { wtime: 300_000, btime: 290_000, winc: 0, binc: 0 },
-  })
+  // Black to move: 30 000 / 30 + 2000 = 3000 ms, the cap.
+  expect(calls[0].limits).toEqual({ strength: { limit: true, elo: 1500 }, go: { movetime: 3000 } })
+})
+
+it('moves quickly when short of time', async () => {
+  const { result } = renderHook(() => useComputerOpponent())
+  void result.current.move(START, LEVELS[6], { wtime: 6000, btime: 60_000, winc: 0, binc: 0 })
+  await waitFor(() => expect(calls).toHaveLength(1))
+  expect(calls[0].limits.go).toEqual({ movetime: 200 })
+})
+
+it('lets full strength manage its own clock', async () => {
+  const { result } = renderHook(() => useComputerOpponent())
+  void result.current.move(START, LEVELS[10], { wtime: 180_000, btime: 180_000, winc: 2000, binc: 2000 })
+  await waitFor(() => expect(calls).toHaveLength(1))
+  expect(calls[0].limits.go).toEqual({ wtime: 180_000, btime: 180_000, winc: 2000, binc: 2000 })
 })
 
 it('thinks about a second per move without a clock', async () => {
