@@ -59,3 +59,14 @@ it('stops on request and leaves the engine at full strength for analysis', async
   for await (const update of engine.analyze(MATE_IN_ONE, { depth: 8, multiPV: 1, chess960: false })) updates.push(update)
   expect(updates.at(-1)!.pv[0]).toBe('a1a8')
 })
+
+it('drops a search that was stopped before it started', async () => {
+  engine = createEngine(await createNodeTransport())
+  const started = Date.now()
+  const cancelled = engine.play(START, { strength: FULL, go: { depth: 30 } })
+  engine.stop()
+  const next = await engine.play(MATE_IN_ONE, { strength: FULL, go: { depth: 8 } })
+  expect((await cancelled).move).toBeNull()
+  expect(next.move).toBe('a1a8')
+  expect(Date.now() - started).toBeLessThan(5000)
+})
