@@ -22,6 +22,18 @@ export type Opponent = {
 
 const CRASHED = 'The engine crashed. Please reload the page.'
 const UNTIMED_MOVE_MS = 1000
+// With UCI_LimitStrength on, Stockfish's own time management spends several times
+// more of the clock than at full strength (measured: 28 s vs 5 s for one 3+2 move),
+// so limited levels get a budget from their remaining time instead.
+const LIMITED_MOVE_MS = { min: 200, max: 3000 }
+const MOVES_TO_GO = 30
+
+function limitedBudget(fen: string, clock: NonNullable<ClockInfo>): number {
+  const black = fen.split(' ')[1] === 'b'
+  const remaining = black ? clock.btime : clock.wtime
+  const increment = black ? clock.binc : clock.winc
+  return Math.min(LIMITED_MOVE_MS.max, Math.max(LIMITED_MOVE_MS.min, Math.round(remaining / MOVES_TO_GO + increment)))
+}
 const HINT: PlayLimits = { strength: { limit: false, skill: 20 }, go: { depth: 14 } }
 
 const toWhite = (score: Score, fen: string): Score =>
@@ -63,7 +75,14 @@ export function useComputerOpponent(): Opponent {
 
   const move = useCallback(
     (fen: string, level: Level, clock: ClockInfo) => {
-      const go = level.nodes !== undefined ? { nodes: level.nodes } : (clock ?? { movetime: UNTIMED_MOVE_MS })
+      const go =
+        level.nodes !== undefined
+          ? { nodes: level.nodes }
+          : !clock
+            ? { movetime: UNTIMED_MOVE_MS }
+            : level.strength.limit
+              ? { movetime: limitedBudget(fen, clock) }
+              : clock
       return run(fen, { strength: level.strength, go }, true)
     },
     [run],
