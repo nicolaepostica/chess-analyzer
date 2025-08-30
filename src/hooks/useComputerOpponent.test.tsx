@@ -114,3 +114,30 @@ it('reports a failed search', async () => {
   await expect(move).resolves.toBeNull()
   expect(result.current.error).toBe('The engine crashed. Please reload the page.')
 })
+
+it('stops a running hint before the computer thinks', async () => {
+  const { result } = renderHook(() => useComputerOpponent())
+  void result.current.hint(START)
+  await waitFor(() => expect(calls).toHaveLength(1))
+  stop.mockClear()
+  void result.current.move(AFTER_E4, LEVELS[4], null)
+  await waitFor(() => expect(calls).toHaveLength(2))
+  expect(stop).toHaveBeenCalled()
+})
+
+it('never budgets more than the time left', async () => {
+  const { result } = renderHook(() => useComputerOpponent())
+  void result.current.move(START, LEVELS[4], { wtime: 1500, btime: 60_000, winc: 2000, binc: 2000 })
+  await waitFor(() => expect(calls).toHaveLength(1))
+  expect(calls[0].limits.go).toEqual({ movetime: 1200 })
+})
+
+it('forgets its evaluation on request', async () => {
+  const { result } = renderHook(() => useComputerOpponent())
+  const move = result.current.move(START, LEVELS[4], null)
+  await waitFor(() => expect(calls).toHaveLength(1))
+  await act(async () => calls[0].resolve({ move: 'e2e4', score: { type: 'cp', value: 80 } }))
+  await move
+  act(() => result.current.resetScore())
+  expect(result.current.lastScoreWhite).toBeNull()
+})
