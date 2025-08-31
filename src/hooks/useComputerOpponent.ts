@@ -14,6 +14,8 @@ export type Opponent = {
   hint(fen: string): Promise<string | null>
   /** Stops the current search; its result then resolves to null. */
   cancel(): void
+  /** Forgets the last evaluation (new game, take back). */
+  resetScore(): void
   /** The computer's evaluation after its latest move search, from White's side. */
   lastScoreWhite: Score | null
   multiThreaded: boolean
@@ -32,7 +34,9 @@ function limitedBudget(fen: string, clock: NonNullable<ClockInfo>): number {
   const black = fen.split(' ')[1] === 'b'
   const remaining = black ? clock.btime : clock.wtime
   const increment = black ? clock.binc : clock.winc
-  return Math.min(LIMITED_MOVE_MS.max, Math.max(LIMITED_MOVE_MS.min, Math.round(remaining / MOVES_TO_GO + increment)))
+  const budget = Math.min(LIMITED_MOVE_MS.max, Math.max(LIMITED_MOVE_MS.min, Math.round(remaining / MOVES_TO_GO + increment)))
+  // Never think past the flag: the increment only arrives after the move.
+  return Math.min(budget, Math.round(remaining * 0.8))
 }
 const HINT: PlayLimits = { strength: { limit: false, skill: 20 }, go: { depth: 14 } }
 
@@ -62,6 +66,8 @@ export function useComputerOpponent(): Opponent {
     const engine = engineRef.current
     if (!engine) return null
     const id = ++generation.current
+    // A hint may still be running; the computer must not wait behind it.
+    engine.stop()
     try {
       const result = await engine.play(fen, limits)
       if (id !== generation.current) return null
@@ -93,8 +99,10 @@ export function useComputerOpponent(): Opponent {
     engineRef.current?.stop()
   }, [])
 
+  const resetScore = useCallback(() => setLastScoreWhite(null), [])
+
   return useMemo(
-    () => ({ move, hint, cancel, lastScoreWhite, multiThreaded: isMultiThreaded(), error }),
-    [move, hint, cancel, lastScoreWhite, error],
+    () => ({ move, hint, cancel, resetScore, lastScoreWhite, multiThreaded: isMultiThreaded(), error }),
+    [move, hint, cancel, resetScore, lastScoreWhite, error],
   )
 }
