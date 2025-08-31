@@ -53,6 +53,9 @@ export function PlayVsComputer() {
   const [evalLines, setEvalLines] = useState<EvalUpdate[]>([])
   const [message, setMessage] = useState<string | null>(null)
 
+  const clockRef = useRef(clock)
+  clockRef.current = clock
+
   const game = gameRef.current
   const playing = match !== null && outcome === null
   const userTurn = playing && fen.split(' ')[1] === match.userColor
@@ -69,6 +72,12 @@ export function PlayVsComputer() {
   /** Plays a move for whoever is to move, presses the clock and checks for the end. */
   const commit = useCallback(
     (from: string, to: string, promotion?: string) => {
+      // The interval checks the flag only every TICK_MS; a move in that gap is too late.
+      const late = clockRef.current && flagged(clockRef.current, Date.now())
+      if (late) {
+        finish(timeoutOutcome(game, late))
+        return false
+      }
       if (!tryMove(game, from, to, promotion ?? 'q')) return false
       setHint(null)
       setMessage(null)
@@ -91,6 +100,7 @@ export function PlayVsComputer() {
     setHint(null)
     setMessage(null)
     setEvalLines([])
+    opponent.resetScore()
     const at = Date.now()
     setNow(at)
     setClock(isTimed(timeControl) ? startClock(createClock(timeControl.initialMs, timeControl.incrementMs), 'w', at) : null)
@@ -98,8 +108,6 @@ export function PlayVsComputer() {
   }
 
   // The computer's turn: ask the engine, ignore the answer if the position moved on.
-  const clockRef = useRef(clock)
-  clockRef.current = clock
   useEffect(() => {
     if (!playing || userTurn) return
     let active = true
@@ -141,6 +149,7 @@ export function PlayVsComputer() {
   const takeBack = () => {
     if (!match) return
     opponent.cancel()
+    opponent.resetScore()
     // Undo the computer's reply too, if it already came.
     if (game.turn() === match.userColor) game.undo()
     game.undo()
