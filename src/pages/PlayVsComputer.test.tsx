@@ -19,6 +19,7 @@ const opponent = {
   move: vi.fn((fen: string) => new Promise<string | null>((resolve) => moveCalls.push({ fen, resolve }))),
   hint: vi.fn(async () => 'g1f3' as string | null),
   cancel: vi.fn(),
+  resetScore: vi.fn(),
   lastScoreWhite: null as null | { type: 'cp' | 'mate'; value: number },
   multiThreaded: true,
   error: null as string | null,
@@ -78,6 +79,7 @@ beforeEach(() => {
   opponent.move.mockClear()
   opponent.hint.mockClear()
   opponent.cancel.mockClear()
+  opponent.resetScore.mockClear()
   opponent.lastScoreWhite = null
 })
 afterEach(() => vi.useRealTimers())
@@ -203,4 +205,26 @@ it('stops its timer when leaving the page', async () => {
   await start()
   unmount()
   expect(vi.getTimerCount()).toBe(0)
+})
+
+it('rejects a move made after the clock ran out', async () => {
+  vi.useFakeTimers({ shouldAdvanceTime: false })
+  vi.setSystemTime(new Date(2025, 7, 7, 12, 0, 0))
+  renderPage({ timeControl: '1+0' })
+  await act(async () => screen.getByRole('button', { name: 'Start game' }).click())
+  // Time passes without the clock's interval getting a chance to notice.
+  vi.setSystemTime(new Date(2025, 7, 7, 12, 1, 0, 50))
+  userMove('e2', 'e4')
+  expect(screen.getByRole('status')).toHaveTextContent('0-1 · Timeout')
+  expect(board()).toHaveAttribute('data-fen', START)
+})
+
+it("forgets the computer's evaluation when a game starts or a move is taken back", async () => {
+  renderPage()
+  await start()
+  expect(opponent.resetScore).toHaveBeenCalledTimes(1)
+  userMove('e2', 'e4')
+  await computerMove('e7e5')
+  await userEvent.click(screen.getByRole('button', { name: 'Take back' }))
+  expect(opponent.resetScore).toHaveBeenCalledTimes(2)
 })
