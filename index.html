@@ -4,6 +4,16 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chess Analyzer</title>
+    <!-- Apply the saved theme before the first paint (see src/hooks/useTheme.ts). -->
+    <script>
+      try {
+        var theme = localStorage.getItem('chess-analyzer:theme')
+        document.documentElement.dataset.theme =
+          theme === 'lichess' || theme === 'wood' ? theme : 'charcoal'
+      } catch (e) {
+        document.documentElement.dataset.theme = 'charcoal'
+      }
+    </script>
     <!-- Adds cross-origin isolation on hosts that cannot set headers (GitHub Pages). -->
     <script src="%BASE_URL%coi-serviceworker.min.js"></script>
   </head>
