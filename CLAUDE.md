@@ -142,12 +142,16 @@ several plies behind.
 
 ## Styling
 
-Tailwind v4. All design tokens live in the `@theme` block of
-`src/styles/index.css`; there is no `tailwind.config`. Dark theme only.
+Tailwind v4. Design tokens live in `src/styles/index.css`; there is no
+`tailwind.config`. Three dark themes: **Charcoal** (default, in the `@theme`
+block), **Lichess-style** and **Wood** (`[data-theme="…"]` blocks that override
+the colour tokens). `src/hooks/useTheme.ts` sets `data-theme` on `<html>` and
+stores the choice; an inline script in `index.html` applies it before the first
+paint. The board squares follow the theme in `src/ui/board.css`.
 
 `src/styles/contrast.test.ts` reads that CSS file and fails the suite if any text
-token drops below WCAG AA on **either** the page background or a card surface —
-a colour can pass on one and fail on the other. The `decor` token (`#5B6184`) is
+token drops below WCAG AA on **either** the page background or a card surface,
+**in every theme** — a colour can pass on one and fail on the other. The `decor` token (per theme) is
 deliberately below the text threshold; a separate test greps the source tree and
 fails if `text-decor` appears anywhere.
 
