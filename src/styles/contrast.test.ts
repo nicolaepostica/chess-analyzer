@@ -6,15 +6,34 @@ import { compositeOver, contrastRatio, parseColor, relativeLuminance } from './c
 
 const css = readFileSync(fileURLToPath(new URL('./index.css', import.meta.url)), 'utf8')
 
-function token(name: string): string {
-  const match = css.match(new RegExp(`--color-${name}:\\s*([^;]+);`))
-  if (!match) throw new Error(`token --color-${name} not found in index.css`)
-  return match[1].trim()
+// Charcoal lives in the @theme block (the default); every other theme overrides
+// colour tokens in a [data-theme="…"] block. A token a theme leaves out falls
+// back to the default, exactly as the cascade does in the browser.
+const THEMES = ['charcoal', 'lichess', 'wood'] as const
+type Theme = (typeof THEMES)[number]
+
+function block(theme: Theme): string {
+  if (theme === 'charcoal') return css.match(/@theme\s*{([^}]*)}/)?.[1] ?? ''
+  const match = css.match(new RegExp(`\\[data-theme="${theme}"\\]\\s*{([^}]*)}`))
+  if (!match) throw new Error(`theme ${theme} not found in index.css`)
+  return match[1]
 }
 
-const bg = parseColor(token('bg')).rgb
-const surfaceRaw = parseColor(token('surface'))
-const surface = compositeOver(surfaceRaw.rgb, surfaceRaw.alpha, bg)
+function token(name: string, theme: Theme = 'charcoal'): string {
+  for (const source of [block(theme), block('charcoal')]) {
+    const match = source.match(new RegExp(`--color-${name}:\\s*([^;]+);`))
+    if (match) return match[1].trim()
+  }
+  throw new Error(`token --color-${name} not found for theme ${theme}`)
+}
+
+function backgrounds(theme: Theme) {
+  const bg = parseColor(token('bg', theme)).rgb
+  const surfaceRaw = parseColor(token('surface', theme))
+  return { bg, surface: compositeOver(surfaceRaw.rgb, surfaceRaw.alpha, bg) }
+}
+
+const { bg } = backgrounds('charcoal')
 
 const TEXT_TOKENS = [
   'fg',
@@ -88,23 +107,25 @@ describe('colour maths', () => {
   })
 })
 
-describe('palette accessibility', () => {
-  for (const name of TEXT_TOKENS) {
-    it(`${name} meets WCAG AA on the page background`, () => {
-      expect(contrastRatio(parseColor(token(name)).rgb, bg)).toBeGreaterThanOrEqual(4.5)
-    })
+for (const theme of THEMES) {
+  describe(`${theme} theme accessibility`, () => {
+    const { bg, surface } = backgrounds(theme)
+    for (const name of TEXT_TOKENS) {
+      it(`${name} meets WCAG AA on the page background`, () => {
+        expect(contrastRatio(parseColor(token(name, theme)).rgb, bg)).toBeGreaterThanOrEqual(4.5)
+      })
 
-    it(`${name} meets WCAG AA on a card surface`, () => {
-      expect(contrastRatio(parseColor(token(name)).rgb, surface)).toBeGreaterThanOrEqual(4.5)
-    })
-  }
+      it(`${name} meets WCAG AA on a card surface`, () => {
+        expect(contrastRatio(parseColor(token(name, theme)).rgb, surface)).toBeGreaterThanOrEqual(4.5)
+      })
+    }
 
-  // #5B6184 — It yields 3.38:1 and is unfit for text.
-  // The test pins exactly that: the colour stays in the palette, but only for non-text use.
-  it('keeps the decorative tone below the text threshold, by design', () => {
-    expect(contrastRatio(parseColor(token('decor')).rgb, bg)).toBeLessThan(4.5)
+    // The decorative tone stays in the palette for borders and ornaments only.
+    it('keeps the decorative tone below the text threshold, by design', () => {
+      expect(contrastRatio(parseColor(token('decor', theme)).rgb, bg)).toBeLessThan(4.5)
+    })
   })
-})
+}
 
 function sourceFiles(dir: string): string[] {
   return readdirSync(dir).flatMap((entry) => {
@@ -116,7 +137,8 @@ function sourceFiles(dir: string): string[] {
 
 // The decorative tone can reach text three ways: the Tailwind utility, the raw
 // variable in an inline style, and the literal hex in an arbitrary value.
-const DECOR_IN_TEXT = /\btext-decor\b|var\(\s*--color-decor\s*\)|#5B6184/i
+const DECOR_HEXES = THEMES.map((theme) => token('decor', theme).replace('#', '\\#'))
+const DECOR_IN_TEXT = new RegExp(`\\btext-decor\\b|var\\(\\s*--color-decor\\s*\\)|${DECOR_HEXES.join('|')}`, 'i')
 
 // contrast.test.ts names all three patterns; index.css legitimately defines the token.
 const ALLOWED_TO_NAME_IT = ['contrast.test.ts', 'index.css']
