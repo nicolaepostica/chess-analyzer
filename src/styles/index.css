@@ -9,34 +9,64 @@
 @import "@fontsource/jetbrains-mono/600.css";
 
 @theme {
-  --color-bg: #04050A;
-  --color-surface: rgba(255, 255, 255, 0.024);
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-well: #11131C;
+  /* Charcoal, the default theme: warm greys and a green accent. The other
+     themes override these tokens in their [data-theme] blocks below. */
+  --color-bg: #312E2B;
+  --color-surface: #262421;
+  --color-border: rgba(255, 255, 255, 0.09);
+  --color-well: #1F1D1B;
 
-  --color-fg: #EEF0FA;
-  --color-fg-secondary: #9AA1BD;
-  --color-fg-muted: #6E78A2;
+  --color-fg: #FFFFFF;
+  --color-fg-secondary: #C9C7C5;
+  --color-fg-muted: #A7A5A3;
 
-  --color-accent: #2DD4FF;
-  --color-accent-alt: #7C83FF;
-  --color-decor: #5B6184;
+  --color-accent: #81B64C;
+  --color-accent-alt: #B6D68C;
+  --color-decor: #5C5955;
 
   /* Move-review labels, chess.com-like hues. All are text tokens. */
   --color-label-brilliant: #26C2A3;
   --color-label-great: #5C9CED;
   --color-label-best: #81B64C;
-  --color-label-book: #B38B5D;
+  --color-label-book: #C8A06F;
   --color-label-inaccuracy: #F7C631;
   --color-label-mistake: #FFA459;
   --color-label-miss: #FF7769;
-  --color-label-blunder: #FA412D;
+  --color-label-blunder: #FF6A55;
 
   --font-display: "Space Grotesk", ui-sans-serif, system-ui, sans-serif;
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 
   --breakpoint-wide: 1280px;
+}
+
+/* Lichess-style: warm near-black, light grey text, soft blue accent. */
+[data-theme="lichess"] {
+  --color-bg: #161512;
+  --color-surface: #262421;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-well: #0F0E0C;
+  --color-fg: #E2E2E2;
+  --color-fg-secondary: #BABABA;
+  --color-fg-muted: #A3A3A3;
+  --color-accent: #4A9FED;
+  --color-accent-alt: #7FB33E;
+  --color-decor: #4A4844;
+}
+
+/* Wood: dark walnut with an amber accent, like a club room. */
+[data-theme="wood"] {
+  --color-bg: #1C1814;
+  --color-surface: #26201A;
+  --color-border: rgba(255, 236, 210, 0.09);
+  --color-well: #14110E;
+  --color-fg: #EDE6DC;
+  --color-fg-secondary: #CDBFAD;
+  --color-fg-muted: #AE9F8D;
+  --color-accent: #D9A441;
+  --color-accent-alt: #D28E62;
+  --color-decor: #5E5246;
 }
 
 @layer base {
@@ -54,7 +84,7 @@
   }
 
   /* Focus is invisible otherwise because buttons drop default styles. Use the
-     purple secondary accent so the ring doesn't blend into the cyan active tab. */
+     secondary accent so the ring doesn't blend into the active tab. */
   :focus-visible {
     outline: 2px solid var(--color-accent-alt);
     outline-offset: 2px;
