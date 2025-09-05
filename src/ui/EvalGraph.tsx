@@ -72,7 +72,7 @@ export function EvalGraph({ whiteWins, total, moves, current, onSelect }: EvalGr
       {currentWin !== undefined && (
         <span
           data-testid="graph-current"
-          className="pointer-events-none absolute size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-bg bg-accent shadow-[0_0_0_3px_rgba(45,212,255,0.35)]"
+          className="pointer-events-none absolute size-3.5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-bg bg-accent shadow-[0_0_0_3px_color-mix(in_oklab,var(--color-accent)_35%,transparent)]"
           style={{ left: `${currentLeft}%`, top: `${Math.min(92, Math.max(8, y(currentWin)))}%` }}
         />
       )}
