@@ -17,3 +17,11 @@
 .board-wrap--solo {
   --row-extras: 0px;
 }
+
+/* Charcoal pairs with chess.com-style green squares; the other themes keep
+   chessground's brown wood. */
+:root:not([data-theme]) cg-board,
+[data-theme="charcoal"] cg-board {
+  background-color: #EEEED2;
+  background-image: url('data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA4IDgiIHNoYXBlLXJlbmRlcmluZz0iY3Jpc3BFZGdlcyI+PHJlY3Qgd2lkdGg9IjgiIGhlaWdodD0iOCIgZmlsbD0iI0VFRUVEMiIvPjxwYXRoIGZpbGw9IiM3Njk2NTYiIGQ9Ik0xIDBoMXYxaC0xek0zIDBoMXYxaC0xek01IDBoMXYxaC0xek03IDBoMXYxaC0xek0wIDFoMXYxaC0xek0yIDFoMXYxaC0xek00IDFoMXYxaC0xek02IDFoMXYxaC0xek0xIDJoMXYxaC0xek0zIDJoMXYxaC0xek01IDJoMXYxaC0xek03IDJoMXYxaC0xek0wIDNoMXYxaC0xek0yIDNoMXYxaC0xek00IDNoMXYxaC0xek02IDNoMXYxaC0xek0xIDRoMXYxaC0xek0zIDRoMXYxaC0xek01IDRoMXYxaC0xek03IDRoMXYxaC0xek0wIDVoMXYxaC0xek0yIDVoMXYxaC0xek00IDVoMXYxaC0xek02IDVoMXYxaC0xek0xIDZoMXYxaC0xek0zIDZoMXYxaC0xek01IDZoMXYxaC0xek03IDZoMXYxaC0xek0wIDdoMXYxaC0xek0yIDdoMXYxaC0xek00IDdoMXYxaC0xek02IDdoMXYxaC0xeiIvPjwvc3ZnPg==');
+}
