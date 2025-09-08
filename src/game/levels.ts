@@ -33,25 +33,57 @@ export function levelName(level: Level): string {
   return `Stockfish · ${level.label}`
 }
 
+export type TimeCategory = 'Bullet' | 'Blitz' | 'Rapid' | 'Classical'
 export type TimeControl =
-  | { id: string; label: string; initialMs: number; incrementMs: number }
+  | { id: string; label: string; category: TimeCategory; initialMs: number; incrementMs: number }
   | { id: 'untimed'; label: string }
+export type CustomTime = { minutes: number; increment: number }
 
-const timed = (minutes: number, incrementS: number): TimeControl => ({
-  id: `${minutes}+${incrementS}`,
+/** Lichess's split: estimated length is the base time plus 40 moves of increment. */
+export function timeCategory(minutes: number, incrementS: number): TimeCategory {
+  const seconds = minutes * 60 + 40 * incrementS
+  if (seconds < 180) return 'Bullet'
+  if (seconds < 480) return 'Blitz'
+  if (seconds < 1500) return 'Rapid'
+  return 'Classical'
+}
+
+const timed = (minutes: number, incrementS: number, id = `${minutes}+${incrementS}`): TimeControl => ({
+  id,
   label: `${minutes}+${incrementS}`,
+  category: timeCategory(minutes, incrementS),
   initialMs: minutes * 60_000,
   incrementMs: incrementS * 1000,
 })
 
 export const TIME_CONTROLS: TimeControl[] = [
   timed(1, 0),
+  timed(2, 1),
+  timed(3, 0),
   timed(3, 2),
   timed(5, 0),
+  timed(5, 3),
   timed(10, 0),
+  timed(10, 5),
   timed(15, 10),
+  timed(30, 0),
+  timed(30, 20),
   { id: 'untimed', label: 'No clock' },
 ]
+
+export const CUSTOM_LIMITS = { minutes: { min: 1, max: 180 }, increment: { min: 0, max: 60 } }
+const clampInt = (value: number, { min, max }: { min: number; max: number }) =>
+  Math.min(max, Math.max(min, Math.round(Number.isFinite(value) ? value : min)))
+
+export function customTimeControl(custom: CustomTime): TimeControl {
+  return timed(clampInt(custom.minutes, CUSTOM_LIMITS.minutes), clampInt(custom.increment, CUSTOM_LIMITS.increment), 'custom')
+}
+
+/** The stored choice ('5+0', 'untimed' or 'custom') as a time control; unknown ids fall back to 5+0. */
+export function resolveTimeControl(id: string, custom: CustomTime): TimeControl {
+  if (id === 'custom') return customTimeControl(custom)
+  return TIME_CONTROLS.find((t) => t.id === id) ?? TIME_CONTROLS[4]
+}
 
 export const isTimed = (tc: TimeControl): tc is Extract<TimeControl, { initialMs: number }> => 'initialMs' in tc
 
