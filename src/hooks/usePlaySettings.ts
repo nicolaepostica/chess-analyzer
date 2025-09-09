@@ -1,11 +1,22 @@
 import { useCallback, useState } from 'react'
-import { LEVELS, TIME_CONTROLS } from '../game/levels'
+import { LEVELS, TIME_CONTROLS, type CustomTime } from '../game/levels'
 
 const STORAGE_KEY = 'chess-analyzer:play'
 
-export type PlaySettings = { level: number; color: 'w' | 'b' | 'random'; timeControl: string }
+export type PlaySettings = { level: number; color: 'w' | 'b' | 'random'; timeControl: string; custom: CustomTime }
 
-export const DEFAULT_PLAY_SETTINGS: PlaySettings = { level: 5, color: 'random', timeControl: '5+0' }
+export const DEFAULT_PLAY_SETTINGS: PlaySettings = {
+  level: 5,
+  color: 'random',
+  timeControl: '5+0',
+  custom: { minutes: 10, increment: 0 },
+}
+
+const isCustom = (raw: unknown): raw is CustomTime =>
+  typeof raw === 'object' &&
+  raw !== null &&
+  Number.isFinite((raw as CustomTime).minutes) &&
+  Number.isFinite((raw as CustomTime).increment)
 
 function sanitize(raw: unknown): PlaySettings {
   if (typeof raw !== 'object' || raw === null) return DEFAULT_PLAY_SETTINGS
@@ -13,9 +24,11 @@ function sanitize(raw: unknown): PlaySettings {
   return {
     level: LEVELS.some((l) => l.level === candidate.level) ? candidate.level! : DEFAULT_PLAY_SETTINGS.level,
     color: candidate.color === 'w' || candidate.color === 'b' || candidate.color === 'random' ? candidate.color : DEFAULT_PLAY_SETTINGS.color,
-    timeControl: TIME_CONTROLS.some((t) => t.id === candidate.timeControl)
-      ? candidate.timeControl!
-      : DEFAULT_PLAY_SETTINGS.timeControl,
+    timeControl:
+      candidate.timeControl === 'custom' || TIME_CONTROLS.some((t) => t.id === candidate.timeControl)
+        ? candidate.timeControl!
+        : DEFAULT_PLAY_SETTINGS.timeControl,
+    custom: isCustom(candidate.custom) ? candidate.custom : DEFAULT_PLAY_SETTINGS.custom,
   }
 }
 
