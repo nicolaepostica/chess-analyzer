@@ -199,6 +199,12 @@ it('opens the finished game in Game Review', async () => {
   expect(url.searchParams.get('pgn')).toContain('[Black "Stockfish Level 5 (1500)"]')
 })
 
+it('starts the clocks from a custom time control', async () => {
+  renderPage({ timeControl: 'custom', custom: { minutes: 7, increment: 2 } })
+  await start()
+  expect(screen.getAllByTestId('clock')[1]).toHaveTextContent('7:00')
+})
+
 it('stops its timer when leaving the page', async () => {
   vi.useFakeTimers({ shouldAdvanceTime: true })
   const { unmount } = renderPage()
