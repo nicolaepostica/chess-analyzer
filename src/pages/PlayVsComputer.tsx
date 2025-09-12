@@ -4,7 +4,7 @@ import type { Chess } from 'chess.js'
 import type { EvalUpdate } from '../engine/uci'
 import { createClock, flagged, pressClock, startClock, stopClock, timeLeft, type ClockState } from '../game/clock'
 import { createGame, legalDests, tryMove, type Square } from '../game/game'
-import { LEVELS, TIME_CONTROLS, isTimed, levelName, pgnTimeControl, type Level, type TimeControl } from '../game/levels'
+import { LEVELS, isTimed, levelName, pgnTimeControl, resolveTimeControl, type Level, type TimeControl } from '../game/levels'
 import { DRAW_AGREED, boardOutcome, playPgn, resignOutcome, timeoutOutcome, type Outcome } from '../game/outcome'
 import { useAnalysis } from '../hooks/useAnalysis'
 import { useComputerOpponent, type ClockInfo } from '../hooks/useComputerOpponent'
@@ -93,7 +93,7 @@ export function PlayVsComputer() {
   const start = () => {
     const color = settings.color === 'random' ? (Math.random() < 0.5 ? 'w' : 'b') : settings.color
     const level = LEVELS.find((l) => l.level === settings.level) ?? LEVELS[4]
-    const timeControl = TIME_CONTROLS.find((t) => t.id === settings.timeControl) ?? TIME_CONTROLS[2]
+    const timeControl = resolveTimeControl(settings.timeControl, settings.custom)
     gameRef.current = createGame()
     setFen(gameRef.current.fen())
     setOutcome(null)
