@@ -52,7 +52,8 @@ Two invariants the suite relies on:
   after the label (`Blunder`, `Book`, …); the `pgn-input` textarea.
 - **Play handles**: `data-testid` `clock` (with `data-active`), `play-move`;
   the `level` range input; buttons `Start game`, `White`/`Random`/`Black`, the
-  time-control chips (`1+0` … `No clock`, `aria-pressed`), `Take back`, `Hint`,
+  time-control tiles (`1+0` … `30+20`, `Custom`, `No clock`, `aria-pressed`),
+  the `custom-minutes` / `custom-increment` fields, `Take back`, `Hint`,
   `Show eval bar`/`Hide eval bar`, `Offer draw`, `Resign`, `Review this game`,
   `New game`; the result is `role="status"`.
 
