@@ -4,7 +4,7 @@ import { MemoryRouter } from 'react-router'
 import { expect, it } from 'vitest'
 import { Nav } from './Nav'
 
-it('links the main pages, without Best move', () => {
+it('links the main pages, without the unfinished ones', () => {
   render(
     <MemoryRouter>
       <Nav />
@@ -13,7 +13,6 @@ it('links the main pages, without Best move', () => {
   expect(screen.getAllByRole('link').map((link) => link.textContent)).toEqual([
     'Analyzer',
     'Play vs computer',
-    'Chess960',
     'Game review',
   ])
 })
