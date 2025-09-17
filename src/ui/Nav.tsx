@@ -2,7 +2,6 @@ import { NavLink } from 'react-router'
 
 const LINKS = [
   { to: '/', label: 'Analyzer' },
-  { to: '/best-move', label: 'Best move' },
   { to: '/play', label: 'Play vs computer' },
   { to: '/freestyle', label: 'Chess960' },
   { to: '/import', label: 'Game review' },
