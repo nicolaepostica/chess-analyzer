@@ -15,6 +15,9 @@
 
   const MARK = 'data-chess-analyzer'
   const GAME_PATH = /\/game\/(live|daily)\/(\d+)/
+  // A game opened from the history is /game/live/<id>; the page a game is
+  // played on, which stays put once it ends, is /game/<id> (seen 2026-11-06).
+  const GAME_PAGE = /^\/game\/(?:(live|daily)\/)?(\d+)/
 
   const sameName = (a, b) => Boolean(a && b) && a.toLowerCase() === b.toLowerCase()
 
@@ -85,10 +88,18 @@
   }
 
   function decorateGamePage() {
-    const match = GAME_PATH.exec(location.pathname)
+    const match = GAME_PAGE.exec(location.pathname)
     const anchor = document.querySelector(GAME_REVIEW_BUTTONS)
     if (!match || !anchor) return
-    const [, kind, id] = match
+    const id = match[2]
+    // /game/<id> does not say live or daily; chess.com's own Game Review link
+    // (/analysis/game/<kind>/<id>) does.
+    const kind =
+      match[1] ||
+      [...anchor.querySelectorAll('a[href*="/analysis/game/"]')]
+        .map((a) => /\/analysis\/game\/(live|daily)\//.exec(a.getAttribute('href'))?.[1])
+        .find(Boolean) ||
+      'live'
     const existing = document.querySelector(`button[${MARK}]`)
     if (existing?.getAttribute(MARK) === id) return
     existing?.remove() // SPA navigation to another game
