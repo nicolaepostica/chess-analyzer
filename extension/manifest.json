@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "Chess Analyzer — Analyze free",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Adds an \"Analyze free\" button to finished chess.com games that opens a free Stockfish Game Review.",
   "homepage_url": "https://nicolaepostica.github.io/chess-analyzer/",
   "icons": {
