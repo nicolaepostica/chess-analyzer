@@ -15,11 +15,11 @@ After editing the files, press the reload icon on the extension's card.
 
 ## Where the button appears
 
-- On a finished game, under the **Game Review** button in the sidebar: right
-  after it ends, on the page it was played on (`/game/<id>`), and when it is
-  opened from the history (`/game/live/<id>`, `/game/daily/<id>`). `/game/<id>`
-  does not say whether the game was live or daily, so that is read from
-  chess.com's own Game Review link (`/analysis/game/<kind>/<id>`).
+- On a finished game, under each **Game Review** button: in the window that
+  pops up over the board when the game ends, and in the sidebar, as wide as
+  Game Review. The page URL varies (`/game/<id>`, `/game/live/<id>`,
+  `/live/game/<id>`), so the game's kind and id are read from chess.com's own
+  Game Review link (`/analysis/game/<kind>/<id>`).
 - In the games archive (`/games/archive/<user>`), as a small **Analyze** button
   next to each game's accuracy.
 
