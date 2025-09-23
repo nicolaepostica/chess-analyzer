@@ -38,6 +38,12 @@ it('colours the counts and shows the label badge, chess.com-style', () => {
   expect(screen.getByRole('img', { name: 'Blunder' })).toBeInTheDocument()
 })
 
+it('gives every label row a badge, Excellent and Good included', () => {
+  render(<ReviewSummary moves={moves} accuracy={null} whiteName="a" blackName="b" />)
+  for (const name of ['Brilliant', 'Great move', 'Best move', 'Excellent', 'Good', 'Book', 'Inaccuracy', 'Mistake', 'Miss', 'Blunder'])
+    expect(screen.getByRole('img', { name })).toBeInTheDocument()
+})
+
 it('names the better move after a mistake', () => {
   const move = reviewedMove({
     ply: 0,
