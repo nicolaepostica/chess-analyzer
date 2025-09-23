@@ -8,6 +8,8 @@
   // Selectors observed on chess.com on 2025-06-27. If chess.com changes its
   // markup, these are the lines to update.
   const GAME_REVIEW_BUTTONS = '.game-review-buttons-component' // sidebar block of a finished game
+  // The "Black Won" window over the board right after a game ends (seen 2026-11-06).
+  const GAME_OVER_BUTTONS = '.game-over-modal-shell-buttons'
   const ARCHIVE_ROW = '.game-history-games-row' // one game in /games/archive/<user>
   const ARCHIVE_CELL = '.game-history-games-accuracy-cell'
   const BOTTOM_PLAYER = '.player-bottom .cc-user-username-component'
@@ -15,9 +17,9 @@
 
   const MARK = 'data-chess-analyzer'
   const GAME_PATH = /\/game\/(live|daily)\/(\d+)/
-  // A game opened from the history is /game/live/<id>; the page a game is
-  // played on, which stays put once it ends, is /game/<id> (seen 2026-11-06).
-  const GAME_PAGE = /^\/game\/(?:(live|daily)\/)?(\d+)/
+  // chess.com's own Game Review link. The page URL varies (/game/<id>,
+  // /game/live/<id>, /live/game/<id>), this link always names kind and id.
+  const REVIEW_LINK = /\/analysis\/game\/(live|daily)\/(\d+)/
 
   const sameName = (a, b) => Boolean(a && b) && a.toLowerCase() === b.toLowerCase()
 
@@ -50,19 +52,20 @@
     return `${REVIEW_BASE}import?${params}`
   }
 
-  function makeButton(kind, id, candidates, compact) {
+  function makeButton(kind, id, candidates, compact, margin = '0') {
     const button = document.createElement('button')
     button.type = 'button'
     button.setAttribute(MARK, id)
     button.textContent = compact ? 'Analyze' : 'Analyze free'
     button.title = 'Open a free Stockfish review in Chess Analyzer'
     Object.assign(button.style, {
-      marginTop: compact ? '0' : '8px',
-      marginLeft: compact ? '6px' : '0',
-      width: compact ? 'auto' : '100%',
-      padding: compact ? '2px 8px' : '10px 12px',
+      // Next to Game Review, the container's gap does the vertical spacing and
+      // the side margins are copied from Game Review so both are equally wide.
+      margin: compact ? '0 0 0 6px' : margin,
+      width: 'auto',
+      padding: compact ? '2px 8px' : '12px',
       border: 'none',
-      borderRadius: '6px',
+      borderRadius: compact ? '6px' : '10px',
       background: '#2DD4FF',
       color: '#04050A',
       font: `600 ${compact ? '12px' : '15px'}/1.2 system-ui, sans-serif`,
@@ -87,28 +90,25 @@
     return button
   }
 
+  /** Puts Analyze free under each Game Review button: the sidebar and the game-over window. */
   function decorateGamePage() {
-    const match = GAME_PAGE.exec(location.pathname)
-    const anchor = document.querySelector(GAME_REVIEW_BUTTONS)
-    if (!match || !anchor) return
-    const id = match[2]
-    // /game/<id> does not say live or daily; chess.com's own Game Review link
-    // (/analysis/game/<kind>/<id>) does.
-    const kind =
-      match[1] ||
-      [...anchor.querySelectorAll('a[href*="/analysis/game/"]')]
-        .map((a) => /\/analysis\/game\/(live|daily)\//.exec(a.getAttribute('href'))?.[1])
-        .find(Boolean) ||
-      'live'
-    const existing = document.querySelector(`button[${MARK}]`)
-    if (existing?.getAttribute(MARK) === id) return
-    existing?.remove() // SPA navigation to another game
-    const candidates = () => [
-      new URLSearchParams(location.search).get('username'),
-      // chess.com puts the signed-in player at the bottom when they played.
-      document.querySelector(BOTTOM_PLAYER)?.textContent.trim(),
-    ]
-    anchor.after(makeButton(kind, id, candidates, false))
+    for (const container of document.querySelectorAll(`${GAME_REVIEW_BUTTONS}, ${GAME_OVER_BUTTONS}`)) {
+      const link = [...container.querySelectorAll('a[href*="/analysis/game/"]')].find((a) =>
+        REVIEW_LINK.test(a.getAttribute('href')),
+      )
+      if (!link) continue
+      const [, kind, id] = REVIEW_LINK.exec(link.getAttribute('href'))
+      const existing = container.querySelector(`button[${MARK}]`)
+      if (existing?.getAttribute(MARK) === id) continue
+      existing?.remove() // SPA navigation to another game
+      const candidates = () => [
+        new URLSearchParams(location.search).get('username'),
+        // chess.com puts the signed-in player at the bottom when they played.
+        document.querySelector(BOTTOM_PLAYER)?.textContent.trim(),
+      ]
+      const style = getComputedStyle(link)
+      link.after(makeButton(kind, id, candidates, false, `0 ${style.marginRight} 0 ${style.marginLeft}`))
+    }
   }
 
   function decorateArchive() {
