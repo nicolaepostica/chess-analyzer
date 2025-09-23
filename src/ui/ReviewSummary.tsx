@@ -1,6 +1,6 @@
 import type { ReviewedMove } from '../game/review'
 import { Fragment } from 'react'
-import { hasBadge, LabelBadge } from './LabelBadge'
+import { LabelBadge } from './LabelBadge'
 import { LABEL_META, LABEL_ORDER } from './labels'
 
 export type ReviewSummaryProps = {
@@ -39,7 +39,7 @@ export function ReviewSummary({ moves, accuracy, whiteName, blackName }: ReviewS
               <span data-testid={`count-${label}-white`} className={`text-right font-mono font-semibold ${tone}`}>
                 {count(label, 'w')}
               </span>
-              <span className="flex justify-center">{hasBadge(label) && <LabelBadge label={label} />}</span>
+              <span className="flex justify-center"><LabelBadge label={label} /></span>
               <span data-testid={`count-${label}-black`} className={`font-mono font-semibold ${tone}`}>
                 {count(label, 'b')}
               </span>
