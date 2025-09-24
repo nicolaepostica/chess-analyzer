@@ -23,9 +23,17 @@ it('marks book moves with a book badge', () => {
   expect(within(screen.getByTestId('review-move')).getByRole('img', { name: 'Book' })).toBeInTheDocument()
 })
 
-it('shows no badge for ordinary good moves', () => {
-  render(<ReviewMoveList moves={[reviewedMove({ ply: 0, label: 'good', san: 'd4' })]} current={0} onSelect={() => {}} />)
-  expect(within(screen.getByTestId('review-move')).queryByRole('img')).not.toBeInTheDocument()
+it('gives Excellent and Good moves a badge too', () => {
+  render(
+    <ReviewMoveList
+      moves={[reviewedMove({ ply: 0, label: 'excellent', san: 'd4' }), reviewedMove({ ply: 1, label: 'good', san: 'd5' })]}
+      current={0}
+      onSelect={() => {}}
+    />,
+  )
+  const [white, black] = screen.getAllByTestId('review-move')
+  expect(within(white).getByRole('img', { name: 'Excellent' })).toBeInTheDocument()
+  expect(within(black).getByRole('img', { name: 'Good' })).toBeInTheDocument()
 })
 
 it('draws pieces as figurines, filled for White and outlined for Black', () => {
