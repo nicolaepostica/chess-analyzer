@@ -11,9 +11,6 @@ const ICONS: Partial<Record<MoveLabel, string>> = {
   good: 'M6.3 12.6 2.4 8.7l1.4-1.4 2.5 2.5 5.9-5.9 1.4 1.4z',
 }
 
-/** Whether a label gets a badge in the move list: the named ones and Book. */
-export const hasBadge = (label: MoveLabel) => LABEL_META[label].glyph !== '' || label === 'book'
-
 export function LabelBadge({ label }: { label: MoveLabel }) {
   const meta = LABEL_META[label]
   return (
