@@ -1,5 +1,5 @@
 import type { ReviewedMove } from '../game/review'
-import { hasBadge, LabelBadge } from './LabelBadge'
+import { LabelBadge } from './LabelBadge'
 import { LABEL_META } from './labels'
 import { SanText } from './SanText'
 
@@ -24,8 +24,7 @@ export function ReviewMoveList({ moves, current, onSelect }: ReviewMoveListProps
     if (!move) return <span />
     const meta = LABEL_META[move.label]
     const active = current === move.ply + 1
-    const badge = hasBadge(move.label)
-    const tone = badge ? meta.textClass : active ? 'text-fg' : 'text-fg-secondary'
+    const tone = move.label === 'good' ? (active ? 'text-fg' : 'text-fg-secondary') : meta.textClass
     return (
       <button
         type="button"
@@ -35,7 +34,7 @@ export function ReviewMoveList({ moves, current, onSelect }: ReviewMoveListProps
         onClick={() => onSelect(move.ply + 1)}
         className={`flex items-center gap-1.5 rounded px-1.5 py-0.5 text-left hover:bg-white/6 ${tone} ${active ? 'bg-accent/15' : ''}`}
       >
-        {badge ? <LabelBadge label={move.label} /> : <span className="size-[18px] shrink-0" />}
+        <LabelBadge label={move.label} />
         <SanText san={move.san} color={move.color} />
       </button>
     )
