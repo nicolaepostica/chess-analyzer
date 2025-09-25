@@ -10,7 +10,7 @@
 
 **Tech Stack:** Tailwind CSS v4, `@tailwindcss/vite`, `@fontsource` (Inter, Space Grotesk, JetBrains Mono), React 19, Vite 6, vitest.
 
-**Spec:** `docs/superpowers/specs/2026-07-10-visual-layer-design.md`
+**Spec:** `docs/specs/2026-07-10-visual-layer-design.md`
 
 ## Global Constraints
 

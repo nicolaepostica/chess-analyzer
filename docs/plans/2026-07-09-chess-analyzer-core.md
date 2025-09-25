@@ -10,7 +10,7 @@
 
 **Tech Stack:** Vite, React 19, TypeScript, vitest, `stockfish@18.0.8`, `chess.js@1.4.0`, `chessground@9.2.1`.
 
-**Spec:** `docs/superpowers/specs/2026-07-09-chess-analyzer-design.md`
+**Spec:** `docs/specs/2026-07-09-chess-analyzer-design.md`
 
 ## Global Constraints
 

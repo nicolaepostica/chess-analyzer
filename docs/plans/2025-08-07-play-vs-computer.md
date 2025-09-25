@@ -8,7 +8,7 @@
 
 **Tech Stack:** React 19, TypeScript, chess.js 1.4.0, chessground 9.2.1, Stockfish 18 lite, vitest 4, Tailwind v4.
 
-**Spec:** `docs/superpowers/specs/2025-08-07-play-vs-computer-design.md`
+**Spec:** `docs/specs/2025-08-07-play-vs-computer-design.md`
 
 ## Global Constraints
 

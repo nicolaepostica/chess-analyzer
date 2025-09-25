@@ -8,7 +8,7 @@
 
 **Tech Stack:** React 19, TypeScript, Vite 6, Tailwind v4, chess.js 1.4.0, chessground 9.2.1, Stockfish 18 lite (WASM), vitest 4, Chrome MV3, GitHub Actions + Pages, `coi-serviceworker` 0.1.7 (MIT).
 
-**Spec:** `docs/superpowers/specs/2025-05-20-chess-com-game-review-design.md`
+**Spec:** `docs/specs/2025-05-20-chess-com-game-review-design.md`
 
 ## Global Constraints
 

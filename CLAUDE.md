@@ -176,8 +176,12 @@ than its own height, so it cannot drift away from the board.
 
 ## Docs
 
-`docs/superpowers/specs/` holds design specs and `docs/superpowers/plans/` the
+`docs/specs/` holds design specs and `docs/plans/` the
 implementation plans that produced this code. They are historical records of
 completed work — the plans' checkboxes were never ticked, and their code samples
 show what was written at the time, not necessarily what is in `src/` now. Read
 them for the *why* behind a decision; read `src/` for the current state.
+
+New specs and plans go to `docs/specs/` and `docs/plans/` as well, not to the
+`docs/superpowers/` default of the brainstorming and planning skills (owner's
+decision, 2026-11-06).

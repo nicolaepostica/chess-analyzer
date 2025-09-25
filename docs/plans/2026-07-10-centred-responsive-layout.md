@@ -10,7 +10,7 @@
 
 **Tech Stack:** Tailwind CSS v4, React 19, Vite 6, vitest.
 
-**Spec:** `docs/superpowers/specs/2026-07-10-centred-responsive-layout-design.md`
+**Spec:** `docs/specs/2026-07-10-centred-responsive-layout-design.md`
 
 ## Global Constraints
 
