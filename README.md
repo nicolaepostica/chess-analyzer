@@ -32,9 +32,7 @@ Engine binaries (the ~7 MB Stockfish WASM) are copied from `node_modules` into
 
 ## Design
 
-Dark theme only. Palette and typography follow
-[odusphere.dev](https://odusphere.dev); the layout follows
-[chessmoveexpert.com](https://chessmoveexpert.com). The board keeps
+Dark theme only. The board keeps
 chessground's classic wooden squares.
 
 Tokens live in `src/styles/index.css` and their contrast is enforced by

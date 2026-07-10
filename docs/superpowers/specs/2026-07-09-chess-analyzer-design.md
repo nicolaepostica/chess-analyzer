@@ -5,7 +5,7 @@ Status: approved, awaiting an implementation plan
 
 ## What we are building
 
-A local counterpart to chessmoveexpert.com: a browser chess analyzer that runs
+A local counterpart: a browser chess analyzer that runs
 entirely on the client. Stockfish is compiled to WASM and spins in a Web Worker;
 there is no backend for the analysis.
 

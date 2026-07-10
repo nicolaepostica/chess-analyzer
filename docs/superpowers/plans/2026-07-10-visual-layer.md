@@ -85,7 +85,7 @@ export default defineConfig({
 
 - [ ] **Step 3: Create `src/styles/index.css`**
 
-The token values come from the spec verbatim. `--color-fg-muted` is the lightened `#6E78A2`, not the original `#5B6184` from odusphere.dev: that one gives a contrast of 3.38:1 and fails WCAG AA. The threshold must hold on **both** backgrounds: the page and a card. The intermediate `#6E76A0` clears it on the page (4.62:1) but fails on a card (4.458:1).
+The token values come from the spec verbatim. `--color-fg-muted` is the lightened `#6E78A2`, not the original `#5B6184`: that one gives a contrast of 3.38:1 and fails WCAG AA. The threshold must hold on **both** backgrounds: the page and a card. The intermediate `#6E76A0` clears it on the page (4.62:1) but fails on a card (4.458:1).
 
 ```css
 @import "tailwindcss";
@@ -301,7 +301,7 @@ describe('palette accessibility', () => {
     })
   }
 
-  // #5B6184 is the muted tone from odusphere.dev. It yields 3.38:1 and is unfit for text.
+  // #5B6184 is the muted tone. It yields 3.38:1 and is unfit for text.
   // This test pins exactly that: the colour stays in the palette, but for non-text use only.
   it('keeps the decorative tone below the text threshold, by design', () => {
     expect(contrastRatio(parseColor(token('decor')).rgb, bg)).toBeLessThan(4.5)
@@ -1443,9 +1443,7 @@ Replace the `## Tools` section with:
 
 ## Design
 
-Dark theme only. Palette and typography follow
-[odusphere.dev](https://odusphere.dev); the layout follows
-[chessmoveexpert.com](https://chessmoveexpert.com). Tokens live in
+Dark theme only. Tokens live in
 `src/styles/index.css` and their contrast is enforced by
 `src/styles/contrast.test.ts`.
 ```

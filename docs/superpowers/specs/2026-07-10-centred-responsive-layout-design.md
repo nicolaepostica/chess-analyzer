@@ -14,7 +14,7 @@ into bedsheets. Below the breakpoint the columns stack, but they stay pinned to
 the left rather than centred. Page padding is constant (24px) and eats a visible
 share of a phone screen.
 
-We bring the layout to the geometry of chessmoveexpert.com: a centring container,
+We bring the layout to the geometry of: a centring container,
 a two-column grid of fixed widths, a centred stack on narrow screens.
 
 ## What was measured on the original

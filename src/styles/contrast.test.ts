@@ -85,7 +85,7 @@ describe('palette accessibility', () => {
     })
   }
 
-  // #5B6184 — a muted tone from odusphere.dev. It yields 3.38:1 and is unfit for text.
+  // #5B6184 — It yields 3.38:1 and is unfit for text.
   // The test pins exactly that: the colour stays in the palette, but only for non-text use.
   it('keeps the decorative tone below the text threshold, by design', () => {
     expect(contrastRatio(parseColor(token('decor')).rgb, bg)).toBeLessThan(4.5)

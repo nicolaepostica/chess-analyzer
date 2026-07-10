@@ -11,8 +11,8 @@ The app has no design. Its own CSS runs to 31 non-blank lines, three of which ar
 have any rules. The page font is `Times`, the buttons are system defaults, and
 the whole layout rests on two inline `style={{}}` attributes.
 
-We are building a visual layer: a layout modelled on chessmoveexpert.com, palette
-and fonts from odusphere.dev, and a board that stays classic wood.
+We are building a visual layer: a layout modelled on, palette
+and fonts , and a board that stays classic wood.
 
 ## Decisions taken during brainstorming
 
@@ -33,7 +33,7 @@ and fonts from odusphere.dev, and a board that stays classic wood.
 
 ## Palette
 
-Taken by measurement from odusphere.dev (`getComputedStyle` over rendered
+Taken (`getComputedStyle` over rendered
 elements).
 
 | Token | Value | Purpose |
@@ -104,7 +104,7 @@ of three cards: engine, settings, position.
 to five lines: number, score, moves. The first line has `fg` text and an `accent`
 score. The rest are `fg-secondary`.
 
-**There is no big heading with a subtitle.** chessmoveexpert has one for search
+**There is no big heading with a subtitle.** has one for search
 rankings, and we dropped SEO back in the first spec. The ~120px freed up go to
 the board.
 
